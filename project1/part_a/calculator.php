@@ -20,9 +20,11 @@
             // define("MATH_EXPRESSION_REGEX", "^\d+(\.\d+)?([+-*/])*$");
 
 
+            define("STR_INVALID_EXPRESSION", "Invalid Expression");
+            define("STR_ZERO_DIVISION_ERR", "Divided by zero error!");
             define("MATH_EXPRESSION_REGEX", "^\d+(\.\d+)?([\+\-\*\/]\d+(\.\d+)?)*$");
-            // define("INVALID_ZEROES_REGEX", "(^|[\+\-\*\/])0+\.");
             define("INVALID_ZEROES_REGEX", "(^|[\+\-\*\/])0{2,}\.");
+            define("ZERO_DIVISION_REGEX", "\/0");
 
             // TODO: check multiple leading 0's
 
@@ -30,21 +32,22 @@
                 $exp = $_REQUEST['expr'];
 
                 if (!empty($exp)) {
-                    $output = "Invalid Expression";
+                    $output = STR_INVALID_EXPRESSION;
                     $expOneSpace = preg_replace('/\s+/', ' ', $exp);
                     $expNoSpace = preg_replace('/\s+/', '', $exp);
 
                     if (preg_match("/" . MATH_EXPRESSION_REGEX . "/", $expNoSpace)) {
                         // echo "Valid";
-                        if (!preg_match("/" . INVALID_ZEROES_REGEX . "/", $expNoSpace)) {
-                            // echo "Valid 0";
-                            eval( '$output = (' . $expNoSpace . ');' );
+                        if (preg_match("/" . ZERO_DIVISION_REGEX . "/", $expNoSpace)) {
+                            $output = STR_ZERO_DIVISION_ERR;
                         } else {
-                            // echo "Invalid 0";
+                            if (!preg_match("/" . INVALID_ZEROES_REGEX . "/", $expNoSpace)) {
+                                // echo "Valid 0";
+                                eval( '$output = (' . $expNoSpace . ');' );
+                            }
                         }
-                        //eval( '$output = (' . $expNoSpace . ');' );
                     } else {
-                        echo "Invalid";
+                        //echo "Invalid";
                     }
                     
                     echo $output;
