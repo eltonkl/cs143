@@ -9,15 +9,27 @@
         </form>
 
         <?php
+            // Approach:
+            // use preg_match() to do input validation
+            // use eval() to execute the string directly
+            // what else?
+
+            // TODO: fix REGEX
+            // http://stackoverflow.com/questions/11009320/validate-mathematical-expressions-using-regular-expression
+            define("MATH_EXPRESSION_REGEX", "([-+/*]\d+(\.\d+)?)*");
+
             if ($_SERVER["REQUEST_METHOD"] == "GET") {
                 $exp = $_REQUEST['fexp'];
-                
-                echo "<h3>$exp</h3>";
 
-                // TODO:
-                // use preg_match() to do input validation
-                // use eval() to execute the string directly
-                // what else?
+                if (!empty($exp)) {
+                    $output = "Invalid Expression";
+
+                    if (preg_match(MATH_EXPRESSION_REGEX, $exp)) {
+                        eval( '$output = (' . $exp . ');' );
+                    }
+                    
+                    echo $output;
+                }
             }
         ?>
 
