@@ -23,7 +23,7 @@
             define("STR_INVALID_EXPRESSION", "Invalid Expression");
             define("STR_ZERO_DIVISION_ERR", "Divided by zero error!");
 
-            define("MATH_EXPRESSION_REGEX", "^\-?\d+(\.\d+)?([\+\-\*\/]\d+(\.\d+)?)*$");
+            define("MATH_EXPRESSION_REGEX", "^\-?\d+(\.\d+)?([\+\-\*\/]\-?\d+(\.\d+)?)*$");
             define("INVALID_ZEROES_REGEX", "(^|[\+\-\*\/])0{2,}\.");
             define("ZERO_DIVISION_REGEX", "\/0");
 
