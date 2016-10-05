@@ -22,7 +22,8 @@
 
             define("STR_INVALID_EXPRESSION", "Invalid Expression");
             define("STR_ZERO_DIVISION_ERR", "Divided by zero error!");
-            define("MATH_EXPRESSION_REGEX", "^\d+(\.\d+)?([\+\-\*\/]\d+(\.\d+)?)*$");
+
+            define("MATH_EXPRESSION_REGEX", "^\-?\d+(\.\d+)?([\+\-\*\/]\d+(\.\d+)?)*$");
             define("INVALID_ZEROES_REGEX", "(^|[\+\-\*\/])0{2,}\.");
             define("ZERO_DIVISION_REGEX", "\/0");
 
@@ -45,10 +46,11 @@
                             if (!preg_match("/" . INVALID_ZEROES_REGEX . "/", $expNoSpace)) {
                                 // valid math expression without invalid leading zeroes before .
                                 eval( '$output = (' . $expNoSpace . ');' );
+                                $output = $expOneSpace . " = " . $output;
                             }
                         }
                     }
-                    echo $expOneSpace . " = " . $output;
+                    echo $output;
                 }
             }
         ?>
