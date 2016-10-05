@@ -18,7 +18,11 @@
             // http://stackoverflow.com/questions/11009320/validate-mathematical-expressions-using-regular-expression
             //define("MATH_EXPRESSION_REGEX", "\d+(\.\d+)?([+-*/]\d+(\.\d+)?)*");
             // define("MATH_EXPRESSION_REGEX", "^\d+(\.\d+)?([+-*/])*$");
+
+
             define("MATH_EXPRESSION_REGEX", "^\d+(\.\d+)?([\+\-\*\/]\d+(\.\d+)?)*$");
+            // define("INVALID_ZEROES_REGEX", "(^|[\+\-\*\/])0+\.");
+            define("INVALID_ZEROES_REGEX", "(^|[\+\-\*\/])0{2,}\.");
 
             // TODO: check multiple leading 0's
 
@@ -32,7 +36,13 @@
 
                     if (preg_match("/" . MATH_EXPRESSION_REGEX . "/", $expNoSpace)) {
                         // echo "Valid";
-                        eval( '$output = (' . $expNoSpace . ');' );
+                        if (!preg_match("/" . INVALID_ZEROES_REGEX . "/", $expNoSpace)) {
+                            // echo "Valid 0";
+                            eval( '$output = (' . $expNoSpace . ');' );
+                        } else {
+                            // echo "Invalid 0";
+                        }
+                        //eval( '$output = (' . $expNoSpace . ');' );
                     } else {
                         echo "Invalid";
                     }
