@@ -37,23 +37,18 @@
                     $expNoSpace = preg_replace('/\s+/', '', $exp);
 
                     if (preg_match("/" . MATH_EXPRESSION_REGEX . "/", $expNoSpace)) {
-                        // echo "Valid";
+                        // valid math expression
                         if (preg_match("/" . ZERO_DIVISION_REGEX . "/", $expNoSpace)) {
+                            // divided by 0 error
                             $output = STR_ZERO_DIVISION_ERR;
                         } else {
                             if (!preg_match("/" . INVALID_ZEROES_REGEX . "/", $expNoSpace)) {
-                                // echo "Valid 0";
+                                // valid math expression without invalid leading zeroes before .
                                 eval( '$output = (' . $expNoSpace . ');' );
                             }
                         }
-                    } else {
-                        //echo "Invalid";
                     }
-                    
-                    echo $output;
-                    //echo $expNoSpace;
-                } else {
-                    echo "Empty";
+                    echo $expOneSpace . " = " . $output;
                 }
             }
         ?>
