@@ -4,7 +4,7 @@
         <h3>Calculator</h3>
 
         <form method="get" action="<?php echo $_SERVER['PHP_SELF'];?>">
-            Expression: <input type="text" name="fexp">
+            Expression: <input type="text" name="expr">
             <input type="submit" value="Calculate">
         </form>
 
@@ -16,19 +16,31 @@
 
             // TODO: fix REGEX
             // http://stackoverflow.com/questions/11009320/validate-mathematical-expressions-using-regular-expression
-            define("MATH_EXPRESSION_REGEX", "([-+/*]\d+(\.\d+)?)*");
+            //define("MATH_EXPRESSION_REGEX", "\d+(\.\d+)?([+-*/]\d+(\.\d+)?)*");
+            // define("MATH_EXPRESSION_REGEX", "^\d+(\.\d+)?([+-*/])*$");
+            define("MATH_EXPRESSION_REGEX", "^\d+(\.\d+)?([\+\-\*\/]\d+(\.\d+)?)*$");
+
+            // TODO: check multiple leading 0's
 
             if ($_SERVER["REQUEST_METHOD"] == "GET") {
-                $exp = $_REQUEST['fexp'];
+                $exp = $_REQUEST['expr'];
 
                 if (!empty($exp)) {
                     $output = "Invalid Expression";
+                    $expOneSpace = preg_replace('/\s+/', ' ', $exp);
+                    $expNoSpace = preg_replace('/\s+/', '', $exp);
 
-                    if (preg_match(MATH_EXPRESSION_REGEX, $exp)) {
-                        eval( '$output = (' . $exp . ');' );
+                    if (preg_match("/" . MATH_EXPRESSION_REGEX . "/", $expNoSpace)) {
+                        // echo "Valid";
+                        eval( '$output = (' . $expNoSpace . ');' );
+                    } else {
+                        echo "Invalid";
                     }
                     
                     echo $output;
+                    //echo $expNoSpace;
+                } else {
+                    echo "Empty";
                 }
             }
         ?>
