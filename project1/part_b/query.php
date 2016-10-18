@@ -51,8 +51,11 @@
 
                     while (true) {
                         echo "<tr>";
-                        foreach($row as $item) {
-                            echo "<td>" . $item . "</td>";
+                        foreach ($colnames as $name) {
+                            if (is_null($row[$name]))
+                                echo "<td>N/A</td>";
+                            else
+                                echo "<td>" . $row[$name] . "</td>";
                         }
                         echo "</tr>";
                         
