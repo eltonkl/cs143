@@ -45,7 +45,7 @@
                 </div>
                 <div class="form-group">
                     <label for="lastName">Date of Death</label>
-                    <input type="text" class="form-control" placeholder="2016-01-01" name="dob">
+                    <input type="text" class="form-control" placeholder="2016-01-01" name="dod">
                     <p class="help-block">Or blank if stil alive</p>
                 </div>
                 <div class="form-group">
@@ -57,9 +57,29 @@
                         <input type="checkbox" name="gender" value="Female">Female
                     </label>
                 </div>
-
                 <button type="submit" class="btn btn-default">Submit</button>
             </form>
+
+            <?php
+                if ($_SERVER["REQUEST_METHOD"] == "GET") {
+                    $type = $_REQUEST['type'];
+                    $firstName = $_REQUEST['firstName'];
+                    $lastName = $_REQUEST['lastName'];
+                    $dob = $_REQUEST['dob'];
+                    $dod = $_REQUEST['dod'];
+                    $gender = $_REQUEST['gender'];
+
+                    if (!empty($firstName) && !empty($lastName) && !empty(dob)) {
+                        $db = new mysqli('localhost', 'cs143', '', 'CS143');
+                        if ($db->connect_errno > 0) {
+                            die('Unable to connect to database [' . $db->connect_error . ']');
+                        }
+                    } else {
+                        // TODO
+                        echo "empty";
+                    }
+                }
+            ?>
 
         </div>
 
