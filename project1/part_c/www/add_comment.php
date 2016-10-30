@@ -89,8 +89,6 @@
             <br>
 
             <?php
-                define("SQL_YEAR_REGEX", "/\d{4}/");
-
                 if ($_SERVER["REQUEST_METHOD"] == "GET") {
                     // check the button is clicked
                     if (isset($_GET['submit'])) {

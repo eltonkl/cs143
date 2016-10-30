@@ -22,8 +22,8 @@
             <h1>Add Actor/Movie Relation</h1>
             <form method="get" action="<?php echo $_SERVER['PHP_SELF'];?>">
                 <div class="form-group">
-                    <label for="actorID">Select Actor</label>
-                    <select class="form-control" name="actorID">
+                    <label for="directorID">Select Director</label>
+                    <select class="form-control" name="directorID">
                         <option value="Default">Please select</option>
                         <?php
                             // connecting to db
@@ -32,7 +32,7 @@
                                 die('Unable to connect to database [' . $db->connect_error . ']');
                             }
 
-                            $query = "SELECT id, first, last FROM Actor;";
+                            $query = "SELECT id, first, last FROM Director;";
                             $result = $db->query($query);
                             if (!$result) {
                                 $errmsg = $db->error;
@@ -81,10 +81,6 @@
                         ?>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label for="role">Role</label>
-                    <input type="text" class="form-control" placeholder="" name="role">
-                </div>
                 <button type="submit" class="btn btn-default" name="submit">Submit</button>
             </form>
             <br>
@@ -93,23 +89,17 @@
                 if ($_SERVER["REQUEST_METHOD"] == "GET") {
                     // check the button is clicked
                     if (isset($_GET['submit'])) {
-                        $actorID = $_REQUEST['actorID'];
+                        $directorID = $_REQUEST['directorID'];
                         $movieID = $_REQUEST['movieID'];
-                        $role = $_REQUEST['role'];
 
                         // input checks
-                        if ($actorID == "Default") {
-                            echo '<div class="alert alert-danger" role="alert"><strong>Error!</strong> Please select an Actor!</div>';
+                        if ($directorID == "Default") {
+                            echo '<div class="alert alert-danger" role="alert"><strong>Error!</strong> Please select an Director!</div>';
                             exit(1);
                         }
 
                         if ($movieID == "Default") {
                             echo '<div class="alert alert-danger" role="alert"><strong>Error!</strong> Please select a Movie!</div>';
-                            exit(1);
-                        }
-
-                        if (empty($role)) {
-                            echo '<div class="alert alert-danger" role="alert"><strong>Error!</strong> Please enter a role!</div>';
                             exit(1);
                         }
 
@@ -120,8 +110,8 @@
                         }
 
                         // query
-                        $query = "INSERT INTO MovieActor VALUES (".$movieID.", ".$actorID.", '".$role."');";
-
+                        $query = "INSERT INTO MovieDirector VALUES (".$movieID.", ".$directorID.");";
+                        
                         // executing query
                         $result = $db->query($query);
                         if (!result) {
