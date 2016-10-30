@@ -19,9 +19,16 @@
         ?>
 
         <div class="container main">
-            <p>hello</p>
-
+            <div class="jumbotron">
+                <h2>Welcome to CS143 Project 1 Query System</h2>
+                <p>...</p>
+            </div>
         </div>
+        <center>
+            <div class="devunit">
+                Made with <span class="love">♥</span> by Anthony Lai and Elton Leong
+            </div>
+        </center>
 
 
         <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
