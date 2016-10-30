@@ -36,7 +36,7 @@
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Add New Contents<span class="caret"></span></a>
                             <ul class="dropdown-menu">
                                 <li><a href="add_actor_director.php">Actor/Director</a></li>
-                                <li><a href="#">Movie</a></li>
+                                <li><a href="add_movie.php">Movie</a></li>
                                 <li><a href="#">Comments</a></li>
                                 <li role="separator" class="divider"></li>
                                 <li><a href="#">Actor/Movie Relation</a></li>
