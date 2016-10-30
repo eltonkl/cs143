@@ -23,7 +23,7 @@
             <form method="get" action="<?php echo $_SERVER['PHP_SELF'];?>">
                 <div class="form-group">
                     <label for="id">Movie Title</label>
-                    <select class="form-control" name="rating">
+                    <select class="form-control" name="id">
                         <option value="Default">Please select</option>
                         <?php
                             // get movie ID
@@ -48,7 +48,7 @@
                             }
 
                             $row = $result->fetch_assoc();
-                            
+                            // populates drop down selection
                             while (true) {
                                 if ($row['id'] == $movieID) {
                                     // set to selected
@@ -66,8 +66,8 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="tile">Your Name</label>
-                    <input type="text" class="form-control" placeholder="" name="title">
+                    <label for="name">Your Name</label>
+                    <input type="text" class="form-control" placeholder="" name="name">
                 </div>
                 <div class="form-group">
                     <label for="rating">Rating</label>
@@ -92,94 +92,59 @@
                 define("SQL_YEAR_REGEX", "/\d{4}/");
 
                 if ($_SERVER["REQUEST_METHOD"] == "GET") {
-
-
-
                     // check the button is clicked
                     if (isset($_GET['submit'])) {
-                        $title = $_REQUEST['title'];
-                        $company = $_REQUEST['company'];
-                        $year = $_REQUEST['year'];
+                        $id = $_REQUEST['id'];
+                        $name = $_REQUEST['name'];
                         $rating = $_REQUEST['rating'];
-                        $genre = $_REQUEST['genre'];
+                        $comment = $_REQUEST['comment'];
 
-                        // empty checks
-                        // if (empty($title)) {
-                        //     echo '<div class="alert alert-danger" role="alert"><strong>Error!</strong> Title can not be empty!</div>';
-                        //     exit(1);
-                        // }
+                        // input checks
+                        if ($id == "Default") {
+                            echo '<div class="alert alert-danger" role="alert"><strong>Error!</strong> Please select a movie!</div>';
+                            exit(1);
+                        }
 
-                        // if (empty($company)) {
-                        //     echo '<div class="alert alert-danger" role="alert"><strong>Error!</strong> Production company can not be empty!</div>';
-                        //     exit(1);
-                        // }
+                        if (empty($name)) {
+                            echo '<div class="alert alert-danger" role="alert"><strong>Error!</strong> Please enter your name!</div>';
+                            exit(1);
+                        }
 
-                        // if (empty($year)) {
-                        //     echo '<div class="alert alert-danger" role="alert"><strong>Error!</strong> Year can not be empty!</div>';
-                        //     exit(1);
-                        // } else if (!preg_match(SQL_YEAR_REGEX, $year)) {
-                        //     echo '<div class="alert alert-danger" role="alert"><strong>Error!</strong> Wrong year format!</div>';
-                        //     exit(1);
-                        // }
+                        if ($rating == "Default") {
+                            echo '<div class="alert alert-danger" role="alert"><strong>Error!</strong> Please give your rating on the movie!</div>';
+                            exit(1);
+                        }
 
-                        // if ($rating == "Default") {
-                        //     echo '<div class="alert alert-danger" role="alert"><strong>Error!</strong> Please select movie rating!</div>';
-                        //     exit(1);
-                        // }
-
-                        // if (empty($genre)) {
-                        //     echo '<div class="alert alert-danger" role="alert"><strong>Error!</strong> Please select at least one genre!</div>';
-                        //     exit(1);
-                        // }
+                        if (empty($comment)) {
+                            echo '<div class="alert alert-danger" role="alert"><strong>Error!</strong> Please leave a comment!</div>';
+                            exit(1);
+                        } else if (strlen($comment) > 500) {
+                            echo '<div class="alert alert-danger" role="alert"><strong>Error!</strong> Comment should be less than 500 characters!</div>';
+                            exit(1);
+                        }
 
 
-                        // // connecting to db
-                        // $db = new mysqli('localhost', 'cs143', '', 'CS143');
-                        // if ($db->connect_errno > 0) {
-                        //     die('Unable to connect to database [' . $db->connect_error . ']');
-                        // }
-
-                        // // retrieve id
-                        // $maxMovieIDQuery = $db->query("SELECT id FROM MaxMovieID");
-                        // if (!$maxMovieIDQuery) {
-                        //     $errmsg = $db->error;
-                        //     print "Unable to retrieve MaxMovieID";
-                        //     print "Query failed: $errmsg<br />";
-                        //     exit(1);
-                        // }
-                        // $maxMovieID = $maxMovieIDQuery->fetch_assoc()[id];
-                        // $newMovieID = $maxMovieID+1;
+                        // connecting to db
+                        $db = new mysqli('localhost', 'cs143', '', 'CS143');
+                        if ($db->connect_errno > 0) {
+                            die('Unable to connect to database [' . $db->connect_error . ']');
+                        }
                         
-                        // // handle special char in name
-                        // $title = str_replace("'", "\'", $title);
+                        // handle special char
+                        $name = str_replace("'", "\'", $name);
+                        $comment = str_replace("'", "\'", $comment);
 
-                        // // query
-                        // $query = "INSERT INTO Movie VALUES (".$newMovieID.", '".$title."', ".$year.", '".$rating."', '".$company."');";
-                        // $queryID = "UPDATE MaxMovieID SET id = id+1";
+                        // query
+                        $query = "INSERT INTO Review ('".$name."', ".time().", ".$id.", ".$rating.", '".$comment."');";
 
-
-                        // // executing query
-                        // $result = $db->query($query);
-                        // if (!result) {
-                        //     $errmsg = $db->error;
-                        //     echo '<div class="alert alert-danger"><strong>Error!</strong><p>Query failed: '.$errmsg.'</p><p>Query: $query</p></div>';
-                        // } else {
-                        //     // update MaxMovieID
-                        //     // TODO: suppose this pass
-                        //     $db->query($queryID);
-
-                        //     echo '<div class="alert alert-success"><p><strong>Success!</strong></p><p>Query: '.$query.'</p>';
-
-                        //     // insert genre
-                        //     foreach ($genre as $ele) {
-                        //         $genreQuery = "INSERT INTO MovieGenre VALUES (".$newMovieID.", '".$ele."');";
-                        //         // TODO: suppose this pass
-                        //         $db->query($genreQuery);
-                        //         echo '<p>Query: '.$genreQuery.'</p>';
-                        //     }
-
-                        //     echo '</div>';     
-                        // }
+                        // executing query
+                        $result = $db->query($query);
+                        if (!result) {
+                            $errmsg = $db->error;
+                            echo '<div class="alert alert-danger"><strong>Error!</strong><p>Query failed: '.$errmsg.'</p><p>Query: $query</p></div>';
+                        } else {
+                            echo '<div class="alert alert-success"><p><strong>Success!</strong></p><p>Query: '.$query.'</p></div>';
+                        }
                     }
                 }
             ?>
