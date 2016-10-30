@@ -39,7 +39,7 @@
                                 <li><a href="add_movie.php">Movie</a></li>
                                 <li><a href="add_comment.php">Comments</a></li>
                                 <li role="separator" class="divider"></li>
-                                <li><a href="#">Actor/Movie Relation</a></li>
+                                <li><a href="add_actor_movie_relation.php">Actor/Movie Relation</a></li>
                                 <li><a href="#">Director/Movie Relation</a></li>
                             </ul>
                         </li>

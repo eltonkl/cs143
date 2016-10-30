@@ -19,20 +19,43 @@
         ?>
 
         <div class="container main">
-            <h1>Add Review</h1>
+            <h1>Add Actor/Movie Relation</h1>
             <form method="get" action="<?php echo $_SERVER['PHP_SELF'];?>">
                 <div class="form-group">
-                    <label for="id">Movie Title</label>
-                    <select class="form-control" name="id">
+                    <label for="actorID">Select Actor</label>
+                    <select class="form-control" name="actorID">
                         <option value="Default">Please select</option>
                         <?php
-                            // get movie ID
-                            if (isset($_GET['movieID'])) {
-                                $movieID = $_GET['movieID'];
-                            } else {
-                                $movieID = 0;
+                            // connecting to db
+                            $db = new mysqli('localhost', 'cs143', '', 'CS143');
+                            if ($db->connect_errno > 0) {
+                                die('Unable to connect to database [' . $db->connect_error . ']');
                             }
 
+                            $query = "SELECT id, first, last FROM Actor;";
+                            $result = $db->query($query);
+                            if (!$result) {
+                                $errmsg = $db->error;
+                                print "Query failed: $errmsg<br />";
+                                exit(1);
+                            }
+
+                            $row = $result->fetch_assoc();
+                            // populates drop down selection
+                            while (true) {
+                                echo '<option value="'.$row['id'].'">'.$row['first']." ".$row['last']."</option>";
+                                $row = $result->fetch_assoc();
+                                if (!$row)
+                                    break;
+                            }
+                        ?>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="movieID">Select Movie</label>
+                    <select class="form-control" name="movieID">
+                        <option value="Default">Please select</option>
+                        <?php
                             // connecting to db
                             $db = new mysqli('localhost', 'cs143', '', 'CS143');
                             if ($db->connect_errno > 0) {
@@ -50,14 +73,7 @@
                             $row = $result->fetch_assoc();
                             // populates drop down selection
                             while (true) {
-                                if ($row['id'] == $movieID) {
-                                    // set to selected
-                                    echo '<option value="'.$row['id'].'" selected="selected">'.$row['title']."</option>";
-
-                                } else {
-                                    echo '<option value="'.$row['id'].'">'.$row['title']."</option>";
-                                }
-
+                                echo '<option value="'.$row['id'].'">'.$row['title']."</option>";
                                 $row = $result->fetch_assoc();
                                 if (!$row)
                                     break;
@@ -66,23 +82,8 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="name">Your Name</label>
-                    <input type="text" class="form-control" placeholder="" name="name">
-                </div>
-                <div class="form-group">
-                    <label for="rating">Rating</label>
-                    <select class="form-control" name="rating">
-                        <option value="Default">Please select</option>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                    </select>
-                </div>
-                <div class="form-froup">
-                  <textarea class="form-control" name="comment" rows="5" placeholder="Please limit your review to 500 characters"></textarea>
-                  <br> 
+                    <label for="role">Role</label>
+                    <input type="text" class="form-control" placeholder="" name="role">
                 </div>
                 <button type="submit" class="btn btn-default" name="submit">Submit</button>
             </form>
@@ -94,48 +95,34 @@
                 if ($_SERVER["REQUEST_METHOD"] == "GET") {
                     // check the button is clicked
                     if (isset($_GET['submit'])) {
-                        $id = $_REQUEST['id'];
-                        $name = $_REQUEST['name'];
-                        $rating = $_REQUEST['rating'];
-                        $comment = $_REQUEST['comment'];
+                        $actorID = $_REQUEST['actorID'];
+                        $movieID = $_REQUEST['movieID'];
+                        $role = $_REQUEST['role'];
 
                         // input checks
-                        if ($id == "Default") {
-                            echo '<div class="alert alert-danger" role="alert"><strong>Error!</strong> Please select a movie!</div>';
+                        if ($actorID == "Default") {
+                            echo '<div class="alert alert-danger" role="alert"><strong>Error!</strong> Please select an Actor!</div>';
                             exit(1);
                         }
 
-                        if (empty($name)) {
-                            echo '<div class="alert alert-danger" role="alert"><strong>Error!</strong> Please enter your name!</div>';
+                        if ($movieID == "Default") {
+                            echo '<div class="alert alert-danger" role="alert"><strong>Error!</strong> Please select a Movie!</div>';
                             exit(1);
                         }
 
-                        if ($rating == "Default") {
-                            echo '<div class="alert alert-danger" role="alert"><strong>Error!</strong> Please give your rating on the movie!</div>';
+                        if (empty($role)) {
+                            echo '<div class="alert alert-danger" role="alert"><strong>Error!</strong> Please enter a role!</div>';
                             exit(1);
                         }
-
-                        if (empty($comment)) {
-                            echo '<div class="alert alert-danger" role="alert"><strong>Error!</strong> Please leave a comment!</div>';
-                            exit(1);
-                        } else if (strlen($comment) > 500) {
-                            echo '<div class="alert alert-danger" role="alert"><strong>Error!</strong> Comment should be less than 500 characters!</div>';
-                            exit(1);
-                        }
-
 
                         // connecting to db
                         $db = new mysqli('localhost', 'cs143', '', 'CS143');
                         if ($db->connect_errno > 0) {
                             die('Unable to connect to database [' . $db->connect_error . ']');
                         }
-                        
-                        // handle special char
-                        $name = str_replace("'", "\'", $name);
-                        $comment = str_replace("'", "\'", $comment);
 
                         // query
-                        $query = "INSERT INTO Review VALUES ('".$name."', ".time().", ".$id.", ".$rating.", '".$comment."');";
+                        $query = "INSERT INTO MovieActor VALUES (".$movieID.", ".$actorID.", '".$role."');";
 
                         // executing query
                         $result = $db->query($query);
