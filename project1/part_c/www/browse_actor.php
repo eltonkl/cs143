@@ -46,10 +46,10 @@
                         else
                             echo "<h1>" . $row["first"] . " " . $row["last"] . "</h1>";
 
-                        echo "<br>";
-
-                        $coldbnames = ["sex", "dob", "dod"];
                         $colheaders = ["Gender", "Date of Birth", "Date of Death"];
+                        $coldbnames = ["sex", "dob", "dod"];
+
+                        echo "<h3>Details</h3>";
                         echo "<table class=\"table\"><tr>";
                         foreach ($colheaders as $header) {
                             echo "<th>" . $header . "</th>";
@@ -73,7 +73,6 @@
                         echo "</table>";
                         $result->free();
 
-                        echo "<br>";
                         $query = "SELECT * FROM MovieActor ma INNER JOIN Movie m ON ma.mid = m.id WHERE ma.aid=" . $actorID;
                         $result = $db->query($query);
                     
@@ -85,11 +84,11 @@
 
                         $row = $result->fetch_assoc();
                         if (!$row) {
-                            echo "<h4>This actor did not act in any of the movies in the database!</h4>";
+                            echo "<h3>This actor did not act in any of the movies in the database!</h3>";
                             exit(1);
                         }
                         
-                        echo "<h4>Filmography</h4>";
+                        echo "<h3>Filmography</h3>";
                         echo "<table class=\"table\"><tr>";
                         echo "<th>Movie</th><th>Role</th>";
                         echo "</tr>";
@@ -114,7 +113,7 @@
                         $result->free();
                     }
                     else {
-                        print("<h3>No actor specified.</h3>");
+                        print("<h3>No actor ID specified.</h3>");
                     }
                 }
             ?>
