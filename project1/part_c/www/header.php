@@ -14,7 +14,7 @@
 
     <body>
         <nav class="navbar navbar-inverse navbar-fixed-top">
-            <div class="container-fluid">
+            <div class="container">
                 <!-- Brand and toggle get grouped for better mobile display -->
                 <div class="navbar-header">
                     <!-- TODO: do we need mobile support lol -->
@@ -36,11 +36,11 @@
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Add New Contents<span class="caret"></span></a>
                             <ul class="dropdown-menu">
                                 <li><a href="add_actor_director.php">Actor/Director</a></li>
-                                <li><a href="#">Movie</a></li>
-                                <li><a href="#">Comments</a></li>
+                                <li><a href="add_movie.php">Movie</a></li>
+                                <li><a href="add_comment.php">Comments</a></li>
                                 <li role="separator" class="divider"></li>
-                                <li><a href="#">Actor/Movie Relation</a></li>
-                                <li><a href="#">Director/Movie Relation</a></li>
+                                <li><a href="add_actor_movie_relation.php">Actor/Movie Relation</a></li>
+                                <li><a href="add_director_movie_relation.php">Director/Movie Relation</a></li>
                             </ul>
                         </li>
 
@@ -52,10 +52,15 @@
                                 <li><a href="#">Movie</a></li>
                             </ul>
                         </li>
-
-                        <!-- Search page -->
-                        <li><a href="#">Search</a></li>
                     </ul>
+
+                    <!-- Search-->
+                    <form method="get" class="navbar-form navbar-right" action="search.php?query=$_REQUEST['query']">
+                        <div class="form-group">
+                            <input type="text" name="query" class="form-control" placeholder="Search...">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Search</button>
+                    </form>
                 </div><!-- /.navbar-collapse -->
             </div><!-- /.container-fluid -->
         </nav>

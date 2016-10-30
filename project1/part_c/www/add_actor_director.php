@@ -50,11 +50,11 @@
                 </div>
                 <div class="form-group">
                     <label>Gender:</label>
-                    <label class="checkbox-inline">
-                        <input type="checkbox" name="gender" value="Male">Male
+                    <label class="radio-inline">
+                        <input type="radio" name="gender" value="Male">Male
                     </label>
-                    <label class="checkbox-inline">
-                        <input type="checkbox" name="gender" value="Female">Female
+                    <label class="radio-inline">
+                        <input type="radio" name="gender" value="Female">Female
                     </label>
                 </div>
                 <button type="submit" class="btn btn-default" name="submit">Submit</button>
