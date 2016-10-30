@@ -19,7 +19,7 @@
         ?>
 
         <div class="container main">
-            <h1>Template</h1>
+            <h1>Add Actor or Director</h1>
             <form method="get" action="<?php echo $_SERVER['PHP_SELF'];?>">
                 <div class="form-group">
                     <label>Occupation:</label>
@@ -127,6 +127,10 @@
                         }
                         $maxPersonID = $maxPersonIDQuery->fetch_assoc()[id];
                         
+                        // handle special char in name
+                        $firstName = str_replace("'", "\'", $firstName);
+                        $lastName = str_replace("'", "\'", $lastName);
+
                         // query
                         if ($type == "Actor") {
                             $query = "INSERT INTO ".$type." VALUES (".($maxPersonID+1).", '".$lastName."', '".$firstName."', '".$gender."', '".$dob."'";
@@ -159,7 +163,6 @@
             ?>
 
         </div>
-
 
         <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
