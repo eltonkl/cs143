@@ -29,7 +29,10 @@
                             die('Unable to connect to database [' . $db->connect_error . ']');
                         }
 
-                        $query = "SELECT *, GROUP_CONCAT(genre SEPARATOR ', ') AS genres FROM Movie m LEFT JOIN MovieGenre mg ON m.id = mg.mid LEFT JOIN MovieDirector md ON m.id = md.mid LEFT JOIN Director d ON md.did = d.id WHERE m.id=" . $movieID . " GROUP BY m.id";
+                        $query = "SELECT * FROM Movie m
+                        LEFT JOIN (SELECT GROUP_CONCAT(genre SEPARATOR ', ') AS genres, mid FROM MovieGenre mg WHERE mid=$movieID) AS g ON m.id = g.mid
+                        LEFT JOIN (SELECT GROUP_CONCAT(fullname SEPARATOR ', ') AS fullnames, mid FROM (SELECT CONCAT(first, ' ', last) AS fullname, mid FROM MovieDirector md INNER JOIN Director d ON md.did = d.id WHERE mid=$movieID ORDER BY last) AS name) AS names ON names.mid = m.id
+                        WHERE m.id=" . $movieID;
                         $result = $db->query($query);
                     
                         if (!$result) {
@@ -46,7 +49,7 @@
                         else
                             echo "<h1>" . $row["title"] . "</h1>";
 
-                        $colheaders = ["Year", "Rating", "Company", "Director", "Genre(s)"];
+                        $colheaders = ["Year", "Rating", "Company", "Director(s)", "Genre(s)"];
 
                         echo "<h3>Details</h3>";
                         echo "<table class=\"table\"><tr>";
@@ -69,11 +72,11 @@
                                 echo "<td>N/A</td>";
                             else
                                 echo "<td>" . $row["company"] . "</td>";
-                            if (is_null($row["last"]) || is_null($row["first"]))
+                            if (is_null($row["fullnames"]))
                                 echo "<td>N/A</td>";
                             else
-                                echo "<td>" . $row["first"] . " ". $row["last"] . "</td>";
-                            if (is_null($row["genre"]))
+                                echo "<td>" . $row["fullnames"] . "</td>";
+                            if (is_null($row["genres"]))
                                 echo "<td>N/A</td>";
                             else
                                 echo "<td>" . $row["genres"] . "</td>";
