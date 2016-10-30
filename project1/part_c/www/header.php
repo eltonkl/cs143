@@ -37,7 +37,7 @@
                             <ul class="dropdown-menu">
                                 <li><a href="add_actor_director.php">Actor/Director</a></li>
                                 <li><a href="add_movie.php">Movie</a></li>
-                                <li><a href="#">Comments</a></li>
+                                <li><a href="add_comment.php">Comments</a></li>
                                 <li role="separator" class="divider"></li>
                                 <li><a href="#">Actor/Movie Relation</a></li>
                                 <li><a href="#">Director/Movie Relation</a></li>
