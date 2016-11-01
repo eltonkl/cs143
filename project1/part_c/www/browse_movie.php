@@ -152,7 +152,7 @@
                         $result->free();
 
                         if ($comments) {
-                            $query = "SELECT * FROM Review WHERE mid=" . $movieID;
+                            $query = "SELECT * FROM Review WHERE mid=" . $movieID . " ORDER BY time DESC";
                             $result = $db->query($query);
                         
                             if (!$result) {
@@ -166,7 +166,7 @@
                                 echo "<h5>";
                                 echo "<font color=\"red\">" . $row["name"] . "</font>" . " gave this movie a <font color=\"blue\">" . $row["rating"] . "</font>/5 rating";
                                 echo " at " . $row["time"] . ", saying:<br>";
-                                echo $row[comment];
+                                echo $row["comment"];
                                 echo "</h5>";                            
                                 $row = $result->fetch_assoc();
                                 if (!$row)
