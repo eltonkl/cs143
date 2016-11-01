@@ -46,7 +46,7 @@
                 <div class="form-group">
                     <label for="lastName">Date of Death</label>
                     <input type="text" class="form-control" placeholder="yyyy-mm-dd" name="dod">
-                    <p class="help-block">Or blank if stil alive</p>
+                    <p class="help-block">Or leave blank if still alive</p>
                 </div>
                 <div class="form-group">
                     <label>Gender:</label>
