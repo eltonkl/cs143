@@ -45,13 +45,13 @@
                         </li>
 
                         <!-- Browsing pages -->
-                        <li class="dropdown">
+                        <!--<li class="dropdown">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Browse Contents<span class="caret"></span></a>
                             <ul class="dropdown-menu">
                                 <li><a href="#">Actor</a></li>
                                 <li><a href="#">Movie</a></li>
                             </ul>
-                        </li>
+                        </li>-->
                     </ul>
 
                     <!-- Search-->

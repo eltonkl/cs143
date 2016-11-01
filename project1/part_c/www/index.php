@@ -21,7 +21,8 @@
         <div class="container main">
             <div class="jumbotron">
                 <h2>Welcome to CS143 Project 1 Query System</h2>
-                <p>...</p>
+                <p>To add new contents to the database, click on the specific page from the "Add New Contents" drop down.</p>
+                <p>To browse detail information about an actor/actress or a movie, type in keywords into the search box above.</p>
             </div>
         </div>
         <center>
