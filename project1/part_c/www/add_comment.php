@@ -133,7 +133,7 @@
                         $comment = str_replace("'", "\'", $comment);
 
                         // query
-                        $query = "INSERT INTO Review VALUES ('".$name."', ".time().", ".$id.", ".$rating.", '".$comment."');";
+                        $query = "INSERT INTO Review VALUES ('".$name."', NOW(),".$id.", ".$rating.", '".$comment."');";
 
                         // executing query
                         $result = $db->query($query);
