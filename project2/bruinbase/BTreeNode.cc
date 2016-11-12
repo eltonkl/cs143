@@ -175,7 +175,82 @@ RC BTLeafNode::insertAndSplit(int key, const RecordId& rid,
  * @return 0 if searchKey is found. Otherwise return an error code.
  */
 RC BTLeafNode::locate(int searchKey, int& eid)
-{ return 0; }
+{ 
+    if (currentKeyCount == 0) {
+        eid = 0;
+        return RC_NO_SUCH_RECORD;
+    }
+
+    if (currentKeyCount == 1) {
+        int key;
+        RecordId rid;
+        readEntry(0, key, rid);
+
+        if (key == searchKey) {
+            eid = 0;
+            return 0;
+        }
+
+        if (searchKey > key) {
+            eid = 1;
+        } else {
+            eid = 0;
+        }
+        return RC_NO_SUCH_RECORD;
+    }
+
+    // binary search
+    int leftIndex = 0,
+        rightIndex = currentKeyCount - 1,
+        midIndex,
+        midKey;
+    RecordId midRid;
+
+    while (leftIndex < rightIndex - 1) {
+        midIndex = leftIndex + (rightIndex - leftIndex) / 2;
+        readEntry(midIndex, midKey, midRid);
+
+        if (searchKey == midKey) {
+            // found
+            eid = midIndex;
+            return 0;
+        }
+
+        if (midKey > searchKey) {
+            rightIndex = midIndex;
+        } else {
+            leftIndex = midIndex;
+        }
+    }
+
+    // check
+    int leftKey,
+        rightKey;
+    RecordId dummyRid;
+    readEntry(leftIndex, leftKey, dummyRid);
+    readEntry(rightIndex, rightKey, dummyRid);
+
+    if (searchKey == leftKey) {
+        eid = leftIndex;
+        return 0;
+    }
+
+    if (searchKey == rightKey) {
+        eid = rightIndex;
+        return 0;
+    }
+
+    // not found
+    if (searchKey < leftKey) {
+        eid = leftIndex;
+    } else if (searchKey < rightKey) {
+        eid = rightIndex;
+    } else {
+        eid = rightIndex + 1;
+    }
+
+    return RC_NO_SUCH_RECORD;
+}
 
 /*
  * Read the (key, rid) pair from the eid entry.
