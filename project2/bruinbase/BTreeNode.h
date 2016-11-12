@@ -16,6 +16,9 @@
 struct LeafEntry {
   int key;
   RecordId rid;
+  LeafEntry() {}
+  LeafEntry(int k, const RecordId& r)
+    :key(k), rid(r) {}
 };
 
 /**
@@ -107,6 +110,10 @@ class BTLeafNode {
     */
     RC write(PageId pid, PageFile& pf);
 
+
+    // TODO: debug use
+    void debug();
+
   private:
    /**
     * The main memory buffer for loading the content of the disk page 
@@ -119,6 +126,9 @@ class BTLeafNode {
     static const int ENTRY_LIMIT = 80;
     static const int OFFSET_NEXT_NODE_PTR = ENTRY_LIMIT * sizeof(LeafEntry);
     static const int OFFSET_CURRENT_KEY_COUNT = OFFSET_NEXT_NODE_PTR + sizeof(PageId);
+
+    // private helper functions
+    void insertLeafEntry(int eid, LeafEntry* ptr);
 }; 
 
 

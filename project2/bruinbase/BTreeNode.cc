@@ -18,8 +18,6 @@ RC BTLeafNode::read(PageId pid, const PageFile& pf)
         // success
         memcpy(&nextNodePtr, buffer + OFFSET_NEXT_NODE_PTR, sizeof(PageId));
         memcpy(&currentKeyCount, buffer + OFFSET_CURRENT_KEY_COUNT, sizeof(int));
-
-        fprintf(stdout, "currentKeyCount is %i\n", currentKeyCount);
     }
 
     return rc;
@@ -33,7 +31,6 @@ RC BTLeafNode::read(PageId pid, const PageFile& pf)
  */
 RC BTLeafNode::write(PageId pid, PageFile& pf)
 {
-    fprintf(stdout, "currentKeyCount is %i\n", currentKeyCount);
     memcpy(buffer + OFFSET_NEXT_NODE_PTR, &nextNodePtr, sizeof(PageId));
     memcpy(buffer + OFFSET_CURRENT_KEY_COUNT, &currentKeyCount, sizeof(int));
 
@@ -45,7 +42,7 @@ RC BTLeafNode::write(PageId pid, PageFile& pf)
  * @return the number of keys in the node
  */
 int BTLeafNode::getKeyCount()
-{ return 0; }
+{ return currentKeyCount; }
 
 /*
  * Insert a (key, rid) pair to the node.
@@ -54,7 +51,69 @@ int BTLeafNode::getKeyCount()
  * @return 0 if successful. Return an error code if the node is full.
  */
 RC BTLeafNode::insert(int key, const RecordId& rid)
-{ return 0; }
+{
+    if (currentKeyCount == ENTRY_LIMIT)
+        return RC_NODE_FULL;
+
+    LeafEntry le(key, rid);
+    
+    // no LeafEntry yet, trivial
+    if (currentKeyCount == 0) {
+        insertLeafEntry(0, &le);
+        return 0;
+    }
+
+    // only one LeafEntry
+    if (currentKeyCount == 1) {
+        int firstKey;
+        RecordId firstRid;
+        readEntry(0, firstKey, firstRid);
+
+        if (key > firstKey) {
+            insertLeafEntry(1, &le);
+        } else {
+            insertLeafEntry(0, &le);
+        }
+
+        return 0;
+    }
+
+    // binary search
+    int leftIndex = 0,
+        rightIndex = currentKeyCount - 1,
+        midIndex,
+        midKey;
+    RecordId midRid;
+
+    while (leftIndex < rightIndex - 1) {
+        midIndex = leftIndex + (rightIndex - leftIndex) / 2;
+        readEntry(midIndex, midKey, midRid);
+
+        if (midKey > key) {
+            rightIndex = midIndex;
+        } else {
+            // assume no duplicate
+            leftIndex = midIndex;
+        }
+    }
+    
+    // find position to insert
+    int leftKey,
+        rightKey;
+    RecordId recordIdTemp;
+    readEntry(leftIndex, leftKey, recordIdTemp);
+    readEntry(rightIndex, rightKey, recordIdTemp);
+
+    if (key < leftKey) {
+        insertLeafEntry(leftIndex, &le);
+    } else if (key < rightKey) {
+        insertLeafEntry(rightIndex, &le);
+    } else {
+        insertLeafEntry(rightIndex + 1, &le);
+    }
+
+    return 0;
+}
 
 /*
  * Insert the (key, rid) pair to the node
@@ -92,7 +151,18 @@ RC BTLeafNode::locate(int searchKey, int& eid)
  * @return 0 if successful. Return an error code if there is an error.
  */
 RC BTLeafNode::readEntry(int eid, int& key, RecordId& rid)
-{ return 0; }
+{
+    if (eid >= currentKeyCount) {
+        // out of bound
+        return RC_INVALID_CURSOR;
+    }
+
+    LeafEntry le;
+    memcpy(&le, buffer + eid * sizeof(LeafEntry), sizeof(LeafEntry));
+    key = le.key;
+    rid = le.rid;
+    return 0;
+}
 
 /*
  * Return the pid of the next slibling node.
@@ -108,6 +178,36 @@ PageId BTLeafNode::getNextNodePtr()
  */
 RC BTLeafNode::setNextNodePtr(PageId pid)
 { return 0; }
+
+// helpers
+void BTLeafNode::insertLeafEntry(int eid, LeafEntry* ptr) {
+    // assuming eid is valid (<= currentKeyCount) and we won't go above limit
+    for (int i = currentKeyCount - 1; i >= eid; i--) {
+        // push the entries back 
+        memcpy(buffer + (i+1) * sizeof(LeafEntry), buffer + i * sizeof(LeafEntry), sizeof(LeafEntry));
+    }
+
+    // insert the LeafEntry
+    memcpy(buffer + eid * sizeof(LeafEntry), ptr, sizeof(LeafEntry));
+    currentKeyCount++;
+}
+
+
+// TODO: debug
+void BTLeafNode::debug() {
+    fprintf(stdout, "==========Debug==========\n");
+    fprintf(stdout, "currentKeyCount is %i\n", currentKeyCount);
+    
+    int key;
+    RecordId rid;
+    for (int i = 0; i < currentKeyCount; i++) {
+        readEntry(i, key, rid);
+        fprintf(stdout, "LeafEntry %i has key %i\n", i, key);
+    }
+}
+
+
+
 
 /*
  * Read the content of the node from the page pid in the PageFile pf.
