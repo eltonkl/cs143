@@ -128,6 +128,8 @@ RC BTLeafNode::insert(int key, const RecordId& rid)
 RC BTLeafNode::insertAndSplit(int key, const RecordId& rid, 
                               BTLeafNode& sibling, int& siblingKey)
 {
+    // TODO: behavior is undefined with few entries (like < 3)
+
     // first LeafEntry to move
     int splitIndex = (currentKeyCount + 1) / 2;
     for (int i = splitIndex; i < currentKeyCount; i++) {
@@ -450,7 +452,57 @@ RC BTNonLeafNode::insert(int key, PageId pid)
  * @return 0 if successful. Return an error code if there is an error.
  */
 RC BTNonLeafNode::insertAndSplit(int key, PageId pid, BTNonLeafNode& sibling, int& midKey)
-{ return 0; }
+{
+    // TODO: behavior is undefined with few entries (like < 3)
+
+    // determine split position
+    bool shouldInsertNewKey = true;
+    int midIndex = currentKeyCount / 2,
+        splitIndex = midIndex + 1,  // first entry of the right sibling
+        leftKey;
+    PageId dummyPid;
+    readEntry(midIndex, midKey, dummyPid);
+    readEntry(midIndex - 1, leftKey, dummyPid);
+
+    if (currentKeyCount % 2 == 0) {
+        if (key < midKey) {
+            // left is going to be 2+ more than right
+            if (key < leftKey) {
+                // just use cur left as new mid
+                midIndex--;
+                splitIndex--;
+                midKey = leftKey;
+            } else {
+                // key > leftKey, key to "insert" will be midKey
+                midKey = key;
+                shouldInsertNewKey = false;
+            }
+        }
+    }
+
+    // move second half of NonLeafEntries to sibling
+    for (int i = splitIndex; i < currentKeyCount; i++) {
+        int curKey;
+        PageId curPageId;
+        readEntry(i, curKey, curPageId);
+        sibling.insert(curKey, curPageId);
+    }
+
+    // update member variables
+    currentKeyCount = splitIndex;
+    if (shouldInsertNewKey) {
+        // the last element in the current half of is used as midKey
+        // it should be invalidated
+        currentKeyCount--;
+
+        if (key < midKey)
+            insert(key, pid);
+        else
+            sibling.insert(key, pid);
+    }
+
+    return 0;
+}
 
 /*
  * Given the searchKey, find the child-node pointer to follow and
