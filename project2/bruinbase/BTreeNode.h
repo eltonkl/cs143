@@ -132,11 +132,24 @@ class BTLeafNode {
 }; 
 
 
+
+struct NonLeafEntry {
+  int key;
+  PageId pid; // this is the ptr for <= key
+  NonLeafEntry() {}
+  NonLeafEntry(int k, PageId p)
+    :key(k), pid(p) {}
+};
+
 /**
  * BTNonLeafNode: The class representing a B+tree nonleaf node.
  */
 class BTNonLeafNode {
   public:
+    // constructor
+    BTNonLeafNode()
+      :currentKeyCount(0) {}
+
    /**
     * Insert a (key, pid) pair to the node.
     * Remember that all keys inside a B+tree node should be kept sorted.
@@ -207,6 +220,13 @@ class BTNonLeafNode {
     * that contains the node.
     */
     char buffer[PageFile::PAGE_SIZE];
+    PageId firstPageId; // this is ptr to less than first key
+    int currentKeyCount;
+
+    static const int ENTRY_LIMIT = 80;
+    static const int OFFSET_FIRST_PAGE_ID = ENTRY_LIMIT * sizeof(NonLeafEntry);
+    static const int OFFSET_CURRENT_KEY_COUNT = OFFSET_FIRST_PAGE_ID + sizeof(PageId);
+
 }; 
 
 #endif /* BTREENODE_H */
