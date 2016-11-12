@@ -127,7 +127,41 @@ RC BTLeafNode::insert(int key, const RecordId& rid)
  */
 RC BTLeafNode::insertAndSplit(int key, const RecordId& rid, 
                               BTLeafNode& sibling, int& siblingKey)
-{ return 0; }
+{
+    // first LeafEntry to move
+    int splitIndex = (currentKeyCount + 1) / 2;
+    for (int i = splitIndex; i < currentKeyCount; i++) {
+        // move second half of LeafEntry to sibling
+        int curKey;
+        RecordId curRid;
+        readEntry(i, curKey, curRid);
+        sibling.insert(curKey, curRid);
+    }
+
+    // update member variables
+    currentKeyCount = splitIndex;
+    int curLastKey;
+    RecordId curLastRid;
+    readEntry(currentKeyCount - 1, curLastKey, curLastRid);
+
+    // check where to insert current key
+    if (key < curLastKey) {
+        if (currentKeyCount > sibling.getKeyCount()) {
+            // uneven, move cur last to sibling
+            sibling.insert(curLastKey, curLastRid);
+            currentKeyCount--;
+        }
+
+        insert(key, rid);
+    } else {
+        sibling.insert(key, rid);
+    }
+
+    RecordId dummyRid;
+    sibling.readEntry(0, siblingKey, dummyRid);
+    return 0;
+    // TODO error checking
+}
 
 /**
  * If searchKey exists in the node, set eid to the index entry
@@ -169,7 +203,10 @@ RC BTLeafNode::readEntry(int eid, int& key, RecordId& rid)
  * @return the PageId of the next sibling node 
  */
 PageId BTLeafNode::getNextNodePtr()
-{ return 0; }
+{
+    // TODO: check end of tree RC_END_OF_TREE   
+    return nextNodePtr;
+}
 
 /*
  * Set the pid of the next slibling node.
@@ -177,7 +214,11 @@ PageId BTLeafNode::getNextNodePtr()
  * @return 0 if successful. Return an error code if there is an error.
  */
 RC BTLeafNode::setNextNodePtr(PageId pid)
-{ return 0; }
+{
+    // TODO: when can an error occur??
+    nextNodePtr = pid;
+    return 0;
+}
 
 // helpers
 void BTLeafNode::insertLeafEntry(int eid, LeafEntry* ptr) {
