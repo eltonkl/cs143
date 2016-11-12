@@ -214,6 +214,9 @@ class BTNonLeafNode {
     */
     RC write(PageId pid, PageFile& pf);
 
+    // TODO: debug use
+    void debug();
+
   private:
    /**
     * The main memory buffer for loading the content of the disk page 
@@ -227,6 +230,9 @@ class BTNonLeafNode {
     static const int OFFSET_FIRST_PAGE_ID = ENTRY_LIMIT * sizeof(NonLeafEntry);
     static const int OFFSET_CURRENT_KEY_COUNT = OFFSET_FIRST_PAGE_ID + sizeof(PageId);
 
+
+    // private helper functions
+    void insertNonLeafEntry(int eid, NonLeafEntry* ptr);
 
     /**
     * Read the (key, pid) pair from the eid entry.

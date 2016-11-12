@@ -310,7 +310,6 @@ void BTLeafNode::insertLeafEntry(int eid, LeafEntry* ptr) {
     currentKeyCount++;
 }
 
-
 // TODO: debug
 void BTLeafNode::debug() {
     fprintf(stdout, "==========Debug==========\n");
@@ -325,7 +324,9 @@ void BTLeafNode::debug() {
 }
 
 
-
+////////////////////////////
+// Non leaf
+////////////////////////////
 
 /*
  * Read the content of the node from the page pid in the PageFile pf.
@@ -374,7 +375,69 @@ int BTNonLeafNode::getKeyCount()
  * @return 0 if successful. Return an error code if the node is full.
  */
 RC BTNonLeafNode::insert(int key, PageId pid)
-{ return 0; }
+{
+    if (currentKeyCount == ENTRY_LIMIT)
+        return RC_NODE_FULL;
+
+    NonLeafEntry nle(key, pid);
+
+    // no NonLeafEntry yet, trivial
+    if (currentKeyCount == 0) {
+        insertNonLeafEntry(0, &nle);
+        return 0;
+    }
+
+    // only one NonLeafEntry
+    if (currentKeyCount == 1) {
+        int firstKey;
+        PageId firstPid;
+        readEntry(0, firstKey, firstPid);
+
+        if (key > firstKey) {
+            insertNonLeafEntry(1, &nle);
+        } else {
+            insertNonLeafEntry(0, &nle);
+        }
+
+        return 0;
+    }
+
+    // binary search
+    int leftIndex = 0,
+        rightIndex = currentKeyCount - 1,
+        midIndex,
+        midKey;
+    PageId midPid;
+
+    while (leftIndex < rightIndex - 1) {
+        midIndex = leftIndex + (rightIndex - leftIndex) / 2;
+        readEntry(midIndex, midKey, midPid);
+
+        if (midKey > key) {
+            rightIndex = midIndex;
+        } else {
+            // assume no duplicate
+            leftIndex = midIndex;
+        }
+    }
+
+    // find position to insert
+    int leftKey,
+        rightKey;
+    PageId dummyPageId;
+    readEntry(leftIndex, leftKey, dummyPageId);
+    readEntry(rightIndex, rightKey, dummyPageId);
+
+    if (key < leftKey) {
+        insertNonLeafEntry(leftIndex, &nle);
+    } else if (key < rightKey) {
+        insertNonLeafEntry(rightIndex, &nle);
+    } else {
+        insertNonLeafEntry(rightIndex + 1, &nle);
+    }
+
+    return 0;
+}
 
 /*
  * Insert the (key, pid) pair to the node
@@ -413,6 +476,19 @@ RC BTNonLeafNode::initializeRoot(PageId pid1, int key, PageId pid2)
 ////////////////////////////
 // private helpers and public utility functions
 ////////////////////////////
+void BTNonLeafNode::insertNonLeafEntry(int eid, NonLeafEntry* ptr) {
+    // assuming eid is valid (<= currentKeyCount) and we won't go above limit
+    for (int i = currentKeyCount - 1; i >= eid; i--) {
+        // push the entries back 
+        memcpy(buffer + (i+1) * sizeof(NonLeafEntry), buffer + i * sizeof(NonLeafEntry), sizeof(NonLeafEntry));
+    }
+
+    // insert the NonLeafEntry
+    memcpy(buffer + eid * sizeof(NonLeafEntry), ptr, sizeof(NonLeafEntry));
+    currentKeyCount++;
+}
+
+
 /**
  * Read the (key, pid) pair from the eid entry.
  * @param eid[IN] the entry number to read the (key, pid) pair from
@@ -420,7 +496,7 @@ RC BTNonLeafNode::initializeRoot(PageId pid1, int key, PageId pid2)
  * @param pid[OUT] the PageId from the slot
  * @return 0 if successful. Return an error code if there is an error.
  */
-RC readEntry(int eid, int& key, PageId& pid) {
+RC BTNonLeafNode::readEntry(int eid, int& key, PageId& pid) {
     if (eid >= currentKeyCount) {
         // out of bound
         return RC_INVALID_CURSOR;
@@ -431,4 +507,17 @@ RC readEntry(int eid, int& key, PageId& pid) {
     key = nle.key;
     pid = nle.pid;
     return 0;
+}
+
+// TODO: debug
+void BTNonLeafNode::debug() {
+    fprintf(stdout, "==========Debug==========\n");
+    fprintf(stdout, "currentKeyCount is %i\n", currentKeyCount);
+    
+    int key;
+    PageId pid;
+    for (int i = 0; i < currentKeyCount; i++) {
+        readEntry(i, key, pid);
+        fprintf(stdout, "LeafEntry %i has key %i and PageId %i\n", i, key, pid);
+    }
 }
