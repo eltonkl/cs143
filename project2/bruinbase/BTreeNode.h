@@ -227,6 +227,15 @@ class BTNonLeafNode {
     static const int OFFSET_FIRST_PAGE_ID = ENTRY_LIMIT * sizeof(NonLeafEntry);
     static const int OFFSET_CURRENT_KEY_COUNT = OFFSET_FIRST_PAGE_ID + sizeof(PageId);
 
+
+    /**
+    * Read the (key, pid) pair from the eid entry.
+    * @param eid[IN] the entry number to read the (key, pid) pair from
+    * @param key[OUT] the key from the slot
+    * @param pid[OUT] the PageId from the slot
+    * @return 0 if successful. Return an error code if there is an error.
+    */
+    RC readEntry(int eid, int& key, PageId& pid);
 }; 
 
 #endif /* BTREENODE_H */

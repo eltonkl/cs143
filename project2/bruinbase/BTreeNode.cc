@@ -295,7 +295,9 @@ RC BTLeafNode::setNextNodePtr(PageId pid)
     return 0;
 }
 
-// helpers
+////////////////////////////
+// private helpers and public utility functions
+////////////////////////////
 void BTLeafNode::insertLeafEntry(int eid, LeafEntry* ptr) {
     // assuming eid is valid (<= currentKeyCount) and we won't go above limit
     for (int i = currentKeyCount - 1; i >= eid; i--) {
@@ -406,3 +408,27 @@ RC BTNonLeafNode::locateChildPtr(int searchKey, PageId& pid)
  */
 RC BTNonLeafNode::initializeRoot(PageId pid1, int key, PageId pid2)
 { return 0; }
+
+
+////////////////////////////
+// private helpers and public utility functions
+////////////////////////////
+/**
+ * Read the (key, pid) pair from the eid entry.
+ * @param eid[IN] the entry number to read the (key, pid) pair from
+ * @param key[OUT] the key from the slot
+ * @param pid[OUT] the PageId from the slot
+ * @return 0 if successful. Return an error code if there is an error.
+ */
+RC readEntry(int eid, int& key, PageId& pid) {
+    if (eid >= currentKeyCount) {
+        // out of bound
+        return RC_INVALID_CURSOR;
+    }
+
+    NonLeafEntry nle;
+    memcpy(&nle, buffer + eid * sizeof(NonLeafEntry), sizeof(NonLeafEntry));
+    key = nle.key;
+    pid = nle.pid;
+    return 0;
+}
