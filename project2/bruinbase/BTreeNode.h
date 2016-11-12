@@ -152,6 +152,7 @@ class BTNonLeafNode {
 
    /**
     * Insert a (key, pid) pair to the node.
+    * NOTE: pid should be the ptr to follow for key <= value
     * Remember that all keys inside a B+tree node should be kept sorted.
     * @param key[IN] the key to insert
     * @param pid[IN] the PageId to insert
@@ -161,6 +162,7 @@ class BTNonLeafNode {
 
    /**
     * Insert the (key, pid) pair to the node
+    * NOTE: pid should be the ptr to follow for key <= value
     * and split the node half and half with sibling.
     * The sibling node MUST be empty when this function is called.
     * The middle key after the split is returned in midKey.
@@ -185,6 +187,8 @@ class BTNonLeafNode {
 
    /**
     * Initialize the root node with (pid1, key, pid2).
+    * NOTE: pid1 should be the ptr to follow for value < key
+    * NODE: pid2 should be the ptr to follow for key <= value
     * @param pid1[IN] the first PageId to insert
     * @param key[IN] the key that should be inserted between the two PageIds
     * @param pid2[IN] the PageId to insert behind the key

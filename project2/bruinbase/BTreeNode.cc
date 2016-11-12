@@ -512,7 +512,66 @@ RC BTNonLeafNode::insertAndSplit(int key, PageId pid, BTNonLeafNode& sibling, in
  * @return 0 if successful. Return an error code if there is an error.
  */
 RC BTNonLeafNode::locateChildPtr(int searchKey, PageId& pid)
-{ return 0; }
+{
+    if (currentKeyCount == 0)
+        return RC_NO_SUCH_RECORD;
+
+    // check first
+    int firstKey;
+    PageId firstPid;
+    readEntry(0, firstKey, firstPid);
+    if (searchKey < firstKey) {
+        pid = firstPageId;
+        return 0;
+    }
+
+    // check only one entry
+    if (currentKeyCount == 1) {
+        pid = firstPid;
+        return 0;
+    }
+
+
+    // binary search
+    int leftIndex = 0,
+        rightIndex = currentKeyCount - 1,
+        midIndex,
+        midKey;
+    PageId midPid;
+
+    while (leftIndex < rightIndex - 1) {
+        midIndex = leftIndex + (rightIndex - leftIndex) / 2;
+        readEntry(midIndex, midKey, midPid);
+
+        if (searchKey == midKey) {
+            // found
+            pid = midPid;
+            return 0;
+        }
+
+        if (midKey > searchKey) {
+            rightIndex = midIndex;
+        } else {
+            leftIndex = midIndex;
+        }
+    }
+
+    // check
+    int leftKey,
+        rightKey;
+    PageId leftPid,
+            rightPid;
+    readEntry(leftIndex, leftKey, leftPid);
+    readEntry(rightIndex, rightKey, rightPid);
+
+    if (searchKey < rightKey) {
+        pid = leftPid;
+    } else {
+        pid = rightPid;
+    }
+
+    return 0;
+}
 
 /*
  * Initialize the root node with (pid1, key, pid2).
@@ -522,7 +581,14 @@ RC BTNonLeafNode::locateChildPtr(int searchKey, PageId& pid)
  * @return 0 if successful. Return an error code if there is an error.
  */
 RC BTNonLeafNode::initializeRoot(PageId pid1, int key, PageId pid2)
-{ return 0; }
+{
+    if (currentKeyCount)
+        return RC_TREE_NOT_EMPTY;
+
+    firstPageId = pid1;
+    insert(key, pid2);
+    return 0;
+}
 
 
 ////////////////////////////
@@ -565,6 +631,7 @@ RC BTNonLeafNode::readEntry(int eid, int& key, PageId& pid) {
 void BTNonLeafNode::debug() {
     fprintf(stdout, "==========Debug==========\n");
     fprintf(stdout, "currentKeyCount is %i\n", currentKeyCount);
+    fprintf(stdout, "firstPageId is %i\n", firstPageId);
     
     int key;
     PageId pid;
