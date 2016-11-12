@@ -13,11 +13,20 @@
 #include "RecordFile.h"
 #include "PageFile.h"
 
+struct LeafEntry {
+  int key;
+  RecordId rid;
+};
+
 /**
  * BTLeafNode: The class representing a B+tree leaf node.
  */
 class BTLeafNode {
   public:
+    // constructor
+    BTLeafNode()
+      :currentKeyCount(0) {}
+
    /**
     * Insert the (key, rid) pair to the node.
     * Remember that all keys inside a B+tree node should be kept sorted.
@@ -104,6 +113,12 @@ class BTLeafNode {
     * that contains the node.
     */
     char buffer[PageFile::PAGE_SIZE];
+    PageId nextNodePtr;
+    int currentKeyCount;
+
+    static const int ENTRY_LIMIT = 80;
+    static const int OFFSET_NEXT_NODE_PTR = ENTRY_LIMIT * sizeof(LeafEntry);
+    static const int OFFSET_CURRENT_KEY_COUNT = OFFSET_NEXT_NODE_PTR + sizeof(PageId);
 }; 
 
 

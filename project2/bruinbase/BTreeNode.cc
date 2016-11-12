@@ -1,4 +1,6 @@
 #include "BTreeNode.h"
+#include <cstring>
+#include <cstdio>   // for debug
 
 using namespace std;
 
@@ -9,7 +11,19 @@ using namespace std;
  * @return 0 if successful. Return an error code if there is an error.
  */
 RC BTLeafNode::read(PageId pid, const PageFile& pf)
-{ return 0; }
+{ 
+    RC rc = pf.read(pid, buffer);
+    
+    if (!rc) {
+        // success
+        memcpy(&nextNodePtr, buffer + OFFSET_NEXT_NODE_PTR, sizeof(PageId));
+        memcpy(&currentKeyCount, buffer + OFFSET_CURRENT_KEY_COUNT, sizeof(int));
+
+        fprintf(stdout, "currentKeyCount is %i\n", currentKeyCount);
+    }
+
+    return rc;
+}
     
 /*
  * Write the content of the node to the page pid in the PageFile pf.
@@ -18,7 +32,13 @@ RC BTLeafNode::read(PageId pid, const PageFile& pf)
  * @return 0 if successful. Return an error code if there is an error.
  */
 RC BTLeafNode::write(PageId pid, PageFile& pf)
-{ return 0; }
+{
+    fprintf(stdout, "currentKeyCount is %i\n", currentKeyCount);
+    memcpy(buffer + OFFSET_NEXT_NODE_PTR, &nextNodePtr, sizeof(PageId));
+    memcpy(buffer + OFFSET_CURRENT_KEY_COUNT, &currentKeyCount, sizeof(int));
+
+    return pf.write(pid, buffer);
+}
 
 /*
  * Return the number of keys stored in the node.
