@@ -43,26 +43,19 @@ RC BTreeIndex::open(const string& indexname, char mode)
     
     if (pf.endPid() == 0) {
         // new PageFile, not page written yet
+        rootPid = -1;
         treeHeight = -1;
-        return 0;
+    } else {
+        // old PageFile, need to read contents
+        // read content from disk to buffer
+        rc = pf.read(PID_TREE_INDEX, buffer);
+        if (!rc) {
+            // update member variables
+            memcpy(&rootPid, buffer, sizeof(PageId));
+            memcpy(&treeHeight, buffer + OFFSET_TREE_HEIGHT, sizeof(int));
+        }
     }
 
-    // load BTreeIndex content
-    PageFile myPF;
-    rc = myPF.open(indexname, 'r');
-    if (rc)
-        return rc;
-
-    // read content from disk to buffer
-    rc = myPF.read(PID_TREE_INDEX, buffer);
-
-    if (!rc) {
-        // update member variables
-        memcpy(&rootPid, buffer, sizeof(PageId));
-        memcpy(&treeHeight, buffer + OFFSET_TREE_HEIGHT, sizeof(int));
-        myPF.close();
-    }
-    
     return rc;
 }
 
