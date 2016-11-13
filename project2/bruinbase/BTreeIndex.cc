@@ -6,9 +6,11 @@
  * @author Junghoo "John" Cho <cho AT cs.ucla.edu>
  * @date 3/24/2008
  */
- 
+
 #include "BTreeIndex.h"
 #include "BTreeNode.h"
+#include <cstring>
+#include <cstdio>   // for debug
 
 using namespace std;
 
@@ -29,7 +31,39 @@ BTreeIndex::BTreeIndex()
  */
 RC BTreeIndex::open(const string& indexname, char mode)
 {
-    return 0;
+    // store mode for BTreeIndex::close()
+    if (mode == 'W' || mode == 'w')
+        isPfWriteMode = true;
+    else
+        isPfWriteMode = false;
+    
+    RC rc = pf.open(indexname, mode);
+    if (rc)
+        return rc;
+    
+    if (pf.endPid() == 0) {
+        // new PageFile, not page written yet
+        treeHeight = -1;
+        return 0;
+    }
+
+    // load BTreeIndex content
+    PageFile myPF;
+    rc = myPF.open(indexname, 'r');
+    if (rc)
+        return rc;
+
+    // read content from disk to buffer
+    rc = myPF.read(PID_TREE_INDEX, buffer);
+
+    if (!rc) {
+        // update member variables
+        memcpy(&rootPid, buffer, sizeof(PageId));
+        memcpy(&treeHeight, buffer + OFFSET_TREE_HEIGHT, sizeof(int));
+        myPF.close();
+    }
+    
+    return rc;
 }
 
 /*
@@ -38,7 +72,19 @@ RC BTreeIndex::open(const string& indexname, char mode)
  */
 RC BTreeIndex::close()
 {
-    return 0;
+    if (!isPfWriteMode)
+        return pf.close();
+
+    // update buffer
+    memcpy(buffer, &rootPid, sizeof(PageId));
+    memcpy(buffer + OFFSET_TREE_HEIGHT, &treeHeight, sizeof(int));
+
+    // write from buffer to disk
+    RC rc = pf.write(PID_TREE_INDEX, buffer);
+    if (!rc) // write success
+        return pf.close();
+    
+    return rc;
 }
 
 /*

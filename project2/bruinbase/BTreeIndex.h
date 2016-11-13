@@ -90,13 +90,18 @@ class BTreeIndex {
   
  private:
   PageFile pf;         /// the PageFile used to store the actual b+tree in disk
+  bool isPfWriteMode;
 
   PageId   rootPid;    /// the PageId of the root node
-  int      treeHeight; /// the height of the tree
+  int      treeHeight; /// the height of the tree (root as 0, -1 as invalid)
   /// Note that the content of the above two variables will be gone when
   /// this class is destructed. Make sure to store the values of the two 
   /// variables in disk, so that they can be reconstructed when the index
   /// is opened again later.
+
+  char buffer[PageFile::PAGE_SIZE];
+  static const int PID_TREE_INDEX = 0;  // always store content of BTreeIndex at pid = 0
+  static const int OFFSET_TREE_HEIGHT = sizeof(PageId);
 };
 
 #endif /* BTREEINDEX_H */
