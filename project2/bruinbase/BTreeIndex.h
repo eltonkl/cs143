@@ -88,6 +88,10 @@ class BTreeIndex {
    */
   RC readForward(IndexCursor& cursor, int& key, RecordId& rid);
   
+
+  // TODO:
+  void debug();
+
  private:
   PageFile pf;         /// the PageFile used to store the actual b+tree in disk
   bool isPfWriteMode;

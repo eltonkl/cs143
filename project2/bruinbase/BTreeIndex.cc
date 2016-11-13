@@ -42,9 +42,17 @@ RC BTreeIndex::open(const string& indexname, char mode)
         return rc;
     
     if (pf.endPid() == 0) {
-        // new PageFile, not page written yet
+        // new PageFile, no page written yet
         rootPid = -1;
         treeHeight = -1;
+
+        // we need to write to PageFile first to reserve the 0th page for TreeIndex's content
+        // update buffer
+        memcpy(buffer, &rootPid, sizeof(PageId));
+        memcpy(buffer + OFFSET_TREE_HEIGHT, &treeHeight, sizeof(int));
+
+        // write from buffer to disk
+        rc = pf.write(PID_TREE_INDEX, buffer);
     } else {
         // old PageFile, need to read contents
         // read content from disk to buffer
@@ -88,6 +96,50 @@ RC BTreeIndex::close()
  */
 RC BTreeIndex::insert(int key, const RecordId& rid)
 {
+    if (!isPfWriteMode)
+        return RC_INVALID_FILE_MODE;
+
+    RC rc;
+
+    // base case: empty
+    if (rootPid == -1) {
+        BTLeafNode btln1, btln2;
+        rc = btln2.insert(key, rid);
+        if (rc)
+            return rc;
+
+        // PageId to store btln1 and btln2
+        PageId pid1 = pf.endPid(),
+                pid2 = pid1 + 1;
+        
+        // set nextNodePtr
+        btln1.setNextNodePtr(pid2);
+
+        // write btln1 and btln2
+        rc = btln1.write(pid1, pf);
+        if (rc)
+            return rc;
+        rc = btln2.write(pid2, pf);
+        if (rc)
+            return rc;
+
+        // initialize root
+        BTNonLeafNode btnln;
+        rc = btnln.initializeRoot(pid1, key, pid2);
+        if (rc)
+            return rc;
+        rc = btnln.write(pf.endPid(), pf);
+        if (rc)
+            return rc;
+
+        // update member variables
+        rootPid = pf.endPid() - 1;
+        treeHeight = 1;
+
+        return 0;
+    }
+
+    
     return 0;
 }
 
@@ -125,4 +177,16 @@ RC BTreeIndex::locate(int searchKey, IndexCursor& cursor)
 RC BTreeIndex::readForward(IndexCursor& cursor, int& key, RecordId& rid)
 {
     return 0;
+}
+
+
+void BTreeIndex::debug() {
+    fprintf(stdout, "==========Debug BTreeIndex==========\n");
+    if (isPfWriteMode) {
+        fprintf(stdout, "Current PageFile is opened with WRITE (RDWR) mode\n");
+    } else {
+        fprintf(stdout, "Current PageFile is opened with READ mode\n");
+    }
+    fprintf(stdout, "rootPid is %i\n", rootPid);
+    fprintf(stdout, "current treeHeight is %i\n", treeHeight);
 }
