@@ -281,7 +281,8 @@ RC BTLeafNode::readEntry(int eid, int& key, RecordId& rid)
  */
 PageId BTLeafNode::getNextNodePtr()
 {
-    // TODO: check end of tree RC_END_OF_TREE   
+    // TODO: check end of tree RC_END_OF_TREE
+    // TODO: set to -1 initially so check this as invalid
     return nextNodePtr;
 }
 
@@ -314,8 +315,9 @@ void BTLeafNode::insertLeafEntry(int eid, LeafEntry* ptr) {
 
 // TODO: debug
 void BTLeafNode::debug() {
-    fprintf(stdout, "==========Debug==========\n");
+    fprintf(stdout, "==========Debug BTLeafNode==========\n");
     fprintf(stdout, "currentKeyCount is %i\n", currentKeyCount);
+    fprintf(stdout, "nextNodePtr is %i\n", nextNodePtr);
     
     int key;
     RecordId rid;
@@ -629,7 +631,7 @@ RC BTNonLeafNode::readEntry(int eid, int& key, PageId& pid) {
 
 // TODO: debug
 void BTNonLeafNode::debug() {
-    fprintf(stdout, "==========Debug==========\n");
+    fprintf(stdout, "==========Debug BTNonLeafNode==========\n");
     fprintf(stdout, "currentKeyCount is %i\n", currentKeyCount);
     fprintf(stdout, "firstPageId is %i\n", firstPageId);
     

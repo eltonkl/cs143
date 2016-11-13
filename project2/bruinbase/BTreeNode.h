@@ -28,7 +28,7 @@ class BTLeafNode {
   public:
     // constructor
     BTLeafNode()
-      :currentKeyCount(0) {}
+      :currentKeyCount(0), nextNodePtr(-1) {}
 
    /**
     * Insert the (key, rid) pair to the node.
