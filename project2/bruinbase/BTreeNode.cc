@@ -263,7 +263,7 @@ RC BTLeafNode::locate(int searchKey, int& eid)
  */
 RC BTLeafNode::readEntry(int eid, int& key, RecordId& rid)
 {
-    if (eid >= currentKeyCount) {
+    if (eid >= currentKeyCount || eid < 0) {
         // out of bound
         return RC_INVALID_CURSOR;
     }
