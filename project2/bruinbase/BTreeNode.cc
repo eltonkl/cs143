@@ -488,15 +488,23 @@ RC BTNonLeafNode::insertAndSplit(int key, PageId pid, BTNonLeafNode& sibling, in
                 // key > leftKey, key to "insert" will be midKey
                 midKey = key;
                 shouldInsertNewKey = false;
+
+                // since we are not inserting new key, use midIndex as splitIndex
+                splitIndex = midIndex;
+
+                // since we are not actually inserting the new key, the sibling's firstPageId will be the pid we want to insert
+                sibling.setFirstPageId(pid);
             }
         }
     }
 
-    // update sibling's firstPageId
-    int dummyKey;
-    PageId midPid;
-    readEntry(midIndex, dummyKey, midPid);
-    sibling.setFirstPageId(midPid);
+    if (shouldInsertNewKey) {
+        // update sibling's firstPageId
+        int dummyKey;
+        PageId midPid;
+        readEntry(midIndex, dummyKey, midPid);
+        sibling.setFirstPageId(midPid);
+    }
 
     // move second half of NonLeafEntries to sibling
     for (int i = splitIndex; i < currentKeyCount; i++) {
