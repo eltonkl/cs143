@@ -140,9 +140,22 @@ RC BTreeIndex::insert(int key, const RecordId& rid)
     }
 
     // need to traverse and insert 
-    int dummyOfKey;
-    PageId dummyOfPid;
-    return traverseAndInsert(key, rid, rootPid, 0, dummyOfKey, dummyOfPid);
+    int ofKey;
+    PageId ofPid;
+    rc = traverseAndInsert(key, rid, rootPid, 0, ofKey, ofPid);
+
+    if (rc == RC_STATUS_INSERT_NEW_ROOT) {
+        // new root
+        BTNonLeafNode newRoot;
+        rc = newRoot.initializeRoot(rootPid, ofKey, ofPid);
+        if (rc)
+            return rc;
+        rootPid = pf.endPid();
+        treeHeight++;
+        return newRoot.write(rootPid, pf);
+    }
+
+    return rc;
 }
 
 /**
@@ -247,6 +260,7 @@ RC BTreeIndex::traverseAndInsert(int key, const RecordId& rid, PageId pid, int c
             return rc;  // unsuccessful split and insert
         } else {
             // TODO: what now?
+            return rc;
         }
     }
 
@@ -271,49 +285,39 @@ RC BTreeIndex::traverseAndInsert(int key, const RecordId& rid, PageId pid, int c
     if (rc < 0) // error
         return rc;
 
-    // some overflow happened
-    if (rc == RC_STATUS_INSERT_LEAF_OF || rc == RC_STATUS_INSERT_NON_LEAF_OF) {
-        rc = btnln.insert(childOfKey, childOfPid);
+    // some overflow happened (don't need to check with OF, also rootOF will be in the original caller)
+    rc = btnln.insert(childOfKey, childOfPid);
 
-        if (!rc)
-            // successful insert
-            return btnln.write(pid, pf);
-        
-        if (rc == RC_NODE_FULL) {
-            BTNonLeafNode sib;
+    if (!rc)
+        // successful insert
+        return btnln.write(pid, pf);
+    
+    if (rc == RC_NODE_FULL) {
+        BTNonLeafNode sib;
 
-            rc = btnln.insertAndSplit(childOfKey, childOfPid, sib, ofKey);
-            if (!rc) {
-                // successful insert and split
-                ofPid = pf.endPid();    // get the next empty pid
-                
-                // write non leaf nodes to disk
-                rc = btnln.write(pid, pf);
-                if (rc)
-                    return rc;
-                rc = sib.write(ofPid, pf);
-                if (rc)
-                    return rc;
+        rc = btnln.insertAndSplit(childOfKey, childOfPid, sib, ofKey);
+        if (!rc) {
+            // successful insert and split
+            ofPid = pf.endPid();    // get the next empty pid
+            
+            // write non leaf nodes to disk
+            rc = btnln.write(pid, pf);
+            if (rc)
+                return rc;
+            rc = sib.write(ofPid, pf);
+            if (rc)
+                return rc;
 
-                if (curDepth == 0)
-                    return RC_STATUS_INSERT_NEW_ROOT;
-                else
-                    return RC_STATUS_INSERT_NON_LEAF_OF;
-            }
-
-            return rc;  // unsuccessful insert and split
-        } else {
-            // TODO: what now?
+            if (curDepth == 0)
+                return RC_STATUS_INSERT_NEW_ROOT;
+            else
+                return RC_STATUS_INSERT_NON_LEAF_OF;
         }
+
+        return rc;  // unsuccessful insert and split
     } else {
-        // new root
-        BTNonLeafNode newRoot;
-        rc = newRoot.initializeRoot(rootPid, childOfKey, childOfPid);
-        if (rc)
-            return rc;
-        rootPid = pf.endPid();
-        treeHeight++;
-        return newRoot.write(rootPid, pf);
+        // TODO: what now?
+        return rc;
     }
 }
 
