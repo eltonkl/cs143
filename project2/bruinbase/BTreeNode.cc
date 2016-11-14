@@ -608,8 +608,6 @@ RC BTNonLeafNode::locateChildPtr(int searchKey, PageId& pid)
  */
 RC BTNonLeafNode::initializeRoot(PageId pid1, int key, PageId pid2)
 {
-    if (currentKeyCount)
-        return RC_TREE_NOT_EMPTY;
 
     firstPageId = pid1;
     insert(key, pid2);

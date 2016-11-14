@@ -26,6 +26,5 @@ const int RC_INVALID_CURSOR      = -1011;
 const int RC_NO_SUCH_RECORD      = -1012;
 const int RC_END_OF_TREE         = -1013;
 const int RC_INVALID_ATTRIBUTE   = -1014;
-const int RC_TREE_NOT_EMPTY      = -1015;
 
 #endif // BRUINBASE_H
