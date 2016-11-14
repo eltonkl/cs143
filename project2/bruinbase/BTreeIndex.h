@@ -113,19 +113,31 @@ class BTreeIndex {
   static const int RC_STATUS_INSERT_NON_LEAF_OF = 2002;
   static const int RC_STATUS_INSERT_NEW_ROOT = 2003;
 
+  ///////////////////////////
   // private helper functions
+  ///////////////////////////
+  /**
+   * Traverse down the B+ tree and insert the (key, rid) pair
+   * @param key[IN] the key to insert
+   * @param rid[IN] the rid to insert
+   * @param pid[IN] the pid from where to access TreeNode
+   * @param curDepth[IN] the depth of the current TreeNode
+   * @param ofKey[OUT] if overflow, this is the key returned
+   * @param ofPid[OUT] if overflow, this is the pid returned
+   * @return error code from insertion, status about OF, or 0 for no error
+   */
+  RC traverseAndInsert(int key, const RecordId& rid, PageId pid, int curDepth, int& ofKey, PageId& ofPid);
 
   /**
-  * Traverse down the B+ tree and insert the (key, rid) pair
-  * @param key[IN] the key to insert
-  * @param rid[IN] the rid to insert
-  * @param pid[IN] the pid from where to access TreeNode
-  * @param curDepth[IN] the depth of the current TreeNode
-  * @param ofKey[OUT] if overflow, this is the key returned
-  * @param ofPid[OUT] if overflow, this is the pid returned
-  * @return error code from insertion, status about OF, or 0 for no error
-  */
-  RC traverseAndInsert(int key, const RecordId& rid, PageId pid, int curDepth, int& ofKey, PageId& ofPid);
+   * Traverse down the B+ tree to locate the entry
+   * @param key[IN] the key to find
+   * @param cursor[OUT] the cursor pointing to the index entry with
+   *                    searchKey or immediately behind the largest key
+   *                    smaller than searchKey.
+   * @param pid[IN] the pid from where to access TreeNode
+   * @param curDepth[IN] the depth of the current TreeNode
+   */
+  RC traverseAndLocate(int searchKey, IndexCursor& cursor, PageId pid, int curDepth);
 };
 
 #endif /* BTREEINDEX_H */

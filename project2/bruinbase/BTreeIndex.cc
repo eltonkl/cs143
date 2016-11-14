@@ -165,7 +165,7 @@ RC BTreeIndex::insert(int key, const RecordId& rid)
  */
 RC BTreeIndex::locate(int searchKey, IndexCursor& cursor)
 {
-    return 0;
+    return traverseAndLocate(searchKey, cursor, rootPid, 0);
 }
 
 /*
@@ -178,9 +178,34 @@ RC BTreeIndex::locate(int searchKey, IndexCursor& cursor)
  */
 RC BTreeIndex::readForward(IndexCursor& cursor, int& key, RecordId& rid)
 {
+    if (cursor.pid == -1) {
+        return RC_END_OF_TREE;
+    }
+    
+    BTLeafNode btln;
+    RC rc = btln.read(cursor.pid, pf);
+    if (rc) // read failed
+        return rc;
+
+    rc = btln.readEntry(cursor.eid, key, rid);
+    if (rc) // readEntry failed
+        return rc;
+    
+    // move cursor to the next entry
+    cursor.eid++;
+    if (cursor.eid == btln.getKeyCount()) {
+        // last eid in current leaf node
+        cursor.pid = btln.getNextNodePtr();
+        cursor.eid = 0;
+    }
+    
     return 0;
 }
 
+
+///////////////////////////
+// private helper functions
+///////////////////////////
 RC BTreeIndex::traverseAndInsert(int key, const RecordId& rid, PageId pid, int curDepth, int& ofKey, PageId& ofPid)
 {
     RC rc;
@@ -292,6 +317,41 @@ RC BTreeIndex::traverseAndInsert(int key, const RecordId& rid, PageId pid, int c
     }
 }
 
+RC BTreeIndex::traverseAndLocate(int searchKey, IndexCursor& cursor, PageId pid, int curDepth)
+{
+    RC rc;
+
+    if (curDepth == treeHeight) {
+        // this is leaf
+        BTLeafNode btln;
+        rc = btln.read(pid, pf);
+        if (rc) // read failed
+            return rc;
+
+        int eid;
+        rc = btln.locate(searchKey, eid);
+
+        cursor.pid = pid;
+        cursor.eid = eid;
+        return rc;
+    } else {
+        // Non leaf node
+        BTNonLeafNode btnln;
+        rc = btnln.read(pid, pf);
+        if (rc) // read failed
+            return rc;
+
+        PageId childPid;
+        rc = btnln.locateChildPtr(searchKey, childPid);
+        if (rc) // locateChildPtr failed
+            return rc;
+
+        IndexCursor childCursor;
+        rc = traverseAndLocate(searchKey, childCursor, childPid, curDepth + 1);
+        cursor = childCursor;
+        return rc;
+    }
+}
 
 void BTreeIndex::debug() {
     fprintf(stdout, "==========Debug BTreeIndex==========\n");
