@@ -106,6 +106,26 @@ class BTreeIndex {
   char buffer[PageFile::PAGE_SIZE];
   static const int PID_TREE_INDEX = 0;  // always store content of BTreeIndex at pid = 0
   static const int OFFSET_TREE_HEIGHT = sizeof(PageId);
+
+  // status for recursive traverse and insert
+  // static const int RC_STATUS_INSERT_NO_OF = 0;
+  static const int RC_STATUS_INSERT_LEAF_OF = 2001;
+  static const int RC_STATUS_INSERT_NON_LEAF_OF = 2002;
+  static const int RC_STATUS_INSERT_NEW_ROOT = 2003;
+
+  // private helper functions
+
+  /**
+  * Traverse down the B+ tree and insert the (key, rid) pair
+  * @param key[IN] the key to insert
+  * @param rid[IN] the rid to insert
+  * @param pid[IN] the pid from where to access TreeNode
+  * @param curDepth[IN] the depth of the current TreeNode
+  * @param ofKey[OUT] if overflow, this is the key returned
+  * @param ofPid[OUT] if overflow, this is the pid returned
+  * @return error code from insertion, status about OF, or 0 for no error
+  */
+  RC traverseAndInsert(int key, const RecordId& rid, PageId pid, int curDepth, int& ofKey, PageId& ofPid);
 };
 
 #endif /* BTREEINDEX_H */

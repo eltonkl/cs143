@@ -139,8 +139,10 @@ RC BTreeIndex::insert(int key, const RecordId& rid)
         return 0;
     }
 
-    
-    return 0;
+    // need to traverse and insert 
+    int dummyOfKey;
+    PageId dummyOfPid;
+    return traverseAndInsert(key, rid, rootPid, 0, dummyOfKey, dummyOfPid);
 }
 
 /**
@@ -177,6 +179,117 @@ RC BTreeIndex::locate(int searchKey, IndexCursor& cursor)
 RC BTreeIndex::readForward(IndexCursor& cursor, int& key, RecordId& rid)
 {
     return 0;
+}
+
+RC BTreeIndex::traverseAndInsert(int key, const RecordId& rid, PageId pid, int curDepth, int& ofKey, PageId& ofPid)
+{
+    RC rc;
+
+    if (curDepth == treeHeight) {
+        // this is leaf
+        BTLeafNode btln;
+        rc = btln.read(pid, pf);
+        if (rc) // read failed
+            return rc;
+
+        rc = btln.insert(key, rid);
+
+        if (!rc)
+            // successful insert
+            return btln.write(pid, pf);
+
+        if (rc == RC_NODE_FULL) {
+            BTLeafNode sib;
+
+            rc = btln.insertAndSplit(key, rid, sib, ofKey);
+            if (!rc) {
+                // successful split and insert
+                ofPid = pf.endPid();    // get the next empty pid
+                sib.setNextNodePtr(btln.getNextNodePtr());  // set sib's next ptr to cur's next ptr
+                btln.setNextNodePtr(ofPid); // set cur's next ptr to sib's ptr
+
+                // write two leaf nodes to disk
+                rc = btln.write(pid, pf);
+                if (rc)
+                    return rc;
+                rc = sib.write(ofPid, pf);
+                if (rc)
+                    return rc;
+
+                return RC_STATUS_INSERT_LEAF_OF;
+            }
+
+            return rc;  // unsuccessful split and insert
+        } else {
+            // TODO: what now?
+        }
+    }
+
+    // Non leaf node
+    BTNonLeafNode btnln;
+    rc = btnln.read(pid, pf);
+    if (rc) // read failed
+        return rc;
+
+    PageId childPid;
+    rc = btnln.locateChildPtr(key, childPid);
+    if (rc) // locateChildPtr failed
+        return rc;
+
+    int childOfKey;
+    PageId childOfPid;
+    rc = traverseAndInsert(key, rid, childPid, curDepth + 1, childOfKey, childOfPid);
+    
+    if (!rc) // no errors or overflow
+        return 0;
+
+    if (rc < 0) // error
+        return rc;
+
+    // some overflow happened
+    if (rc == RC_STATUS_INSERT_LEAF_OF || rc == RC_STATUS_INSERT_NON_LEAF_OF) {
+        rc = btnln.insert(childOfKey, childOfPid);
+
+        if (!rc)
+            // successful insert
+            return btnln.write(pid, pf);
+        
+        if (rc == RC_NODE_FULL) {
+            BTNonLeafNode sib;
+
+            rc = btnln.insertAndSplit(childOfKey, childOfPid, sib, ofKey);
+            if (!rc) {
+                // successful insert and split
+                ofPid = pf.endPid();    // get the next empty pid
+                
+                // write non leaf nodes to disk
+                rc = btnln.write(pid, pf);
+                if (rc)
+                    return rc;
+                rc = sib.write(ofPid, pf);
+                if (rc)
+                    return rc;
+
+                if (curDepth == 0)
+                    return RC_STATUS_INSERT_NEW_ROOT;
+                else
+                    return RC_STATUS_INSERT_NON_LEAF_OF;
+            }
+
+            return rc;  // unsuccessful insert and split
+        } else {
+            // TODO: what now?
+        }
+    } else {
+        // new root
+        BTNonLeafNode newRoot;
+        rc = newRoot.initializeRoot(rootPid, childOfKey, childOfPid);
+        if (rc)
+            return rc;
+        rootPid = pf.endPid();
+        treeHeight++;
+        return newRoot.write(rootPid, pf);
+    }
 }
 
 
