@@ -371,6 +371,16 @@ RC BTNonLeafNode::write(PageId pid, PageFile& pf)
 int BTNonLeafNode::getKeyCount()
 { return currentKeyCount; }
 
+/*
+ * Set the first page's PageId.
+ * @param pid[IN] the PageId of the first child node 
+ * @return 0 if successful. Return an error code if there is an error.
+ */
+RC BTNonLeafNode::setFirstPageId(PageId pid) {
+    firstPageId = pid;
+    return 0;
+}
+
 
 /*
  * Insert a (key, pid) pair to the node.
@@ -481,6 +491,12 @@ RC BTNonLeafNode::insertAndSplit(int key, PageId pid, BTNonLeafNode& sibling, in
             }
         }
     }
+
+    // update sibling's firstPageId
+    int dummyKey;
+    PageId midPid;
+    readEntry(midIndex, dummyKey, midPid);
+    sibling.setFirstPageId(midPid);
 
     // move second half of NonLeafEntries to sibling
     for (int i = splitIndex; i < currentKeyCount; i++) {

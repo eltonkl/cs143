@@ -202,6 +202,13 @@ class BTNonLeafNode {
     */
     int getKeyCount();
 
+  /**
+    * Set the first page's PageId.
+    * @param pid[IN] the PageId of the first child node 
+    * @return 0 if successful. Return an error code if there is an error.
+    */
+    RC setFirstPageId(PageId pid);
+
    /**
     * Read the content of the node from the page pid in the PageFile pf.
     * @param pid[IN] the PageId to read
