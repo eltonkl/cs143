@@ -68,7 +68,7 @@ RC SqlEngine::select(int attr, const string& table, const vector<SelCond>& cond)
     }
   }
 
-  if (hasIndex && keyConditions > 0 && !keyInequality) {
+  if (hasIndex && !keyInequality && (keyConditions > 0 || attr == 4 && keyConditions == 0)) {
     vector<pair<int, RecordId> > rids;
     IndexCursor cursor;
 
