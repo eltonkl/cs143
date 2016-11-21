@@ -141,12 +141,13 @@ RC SqlEngine::select(int attr, const string& table, const vector<SelCond>& cond)
       }
     }
 
-    //fprintf(stderr, "final %d %d\n", min, max);
+    fprintf(stderr, "final %d %d\n", min, max);
     rc = bti.locate(min, cursor);
-    //fprintf(stderr, "first rc: %d\n", rc);
+    fprintf(stderr, "first rc: %d and pid: %d, eid: %d\n", rc, cursor.pid, cursor.eid);
     while (true) {
       RecordId rid;
       rc = bti.readForward(cursor, key, rid);
+      fprintf(stderr, "loop rc: %d\n", rc);
       if (rc == 0) {
         if (ge && key < min)
           continue;
@@ -157,13 +158,14 @@ RC SqlEngine::select(int attr, const string& table, const vector<SelCond>& cond)
         else if (!le && key >= max)
           break;
         rids.push_back(make_pair(key, rid));
+        fprintf(stderr, "key %d\n", key);
       }
       else
         break;
     }
 
     count = 0;
-    //fprintf(stderr, "size of rids: %u\n", rids.size());
+    fprintf(stderr, "size of rids: %u\n", rids.size());
     {
       vector<pair<int, RecordId> >::iterator it = rids.begin();
       while (it != rids.end()) {
