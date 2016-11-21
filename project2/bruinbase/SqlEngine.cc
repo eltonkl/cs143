@@ -223,106 +223,6 @@ RC SqlEngine::select(int attr, const string& table, const vector<SelCond>& cond)
       fprintf(stdout, "%d\n", count);
     }
 
-    // int val = atoi(cond[firstKeyCondition].value);
-
-    // // populate the map with a key condition
-    // switch (cond[firstKeyCondition].comp) {
-    // case SelCond::EQ:
-    //   rc = bti.locate(val, cursor);
-    //   if (rc)
-    //     break; // no result
-    //   while (true) {
-    //     RecordId rid;
-    //     rc = bti.readForward(cursor, key, rid);
-    //     if (rc == 0 && key == val)
-    //       rids.insert(make_pair(key, rid));
-    //     else
-    //       break;
-    //   }
-    //   break;
-    // case SelCond::NE:
-    //   // this shouldn't ever be reached
-    //   break;
-    // case SelCond::LT:
-    //   rc = bti.locate(INT_MIN, cursor);
-    //   while (true) {
-    //     RecordId rid;
-    //     rc = bti.readForward(cursor, key, rid);
-    //     if (rc == 0 && key < val)
-    //       rids.insert(make_pair(key, rid));
-    //     else
-    //       break;
-    //   }
-    //   break;
-    // case SelCond::GT:
-    //   rc = bti.locate(val + 1, cursor);
-    //   while (true) {
-    //     RecordId rid;
-    //     rc = bti.readForward(cursor, key, rid);
-    //     if (rc == 0 && key > val)
-    //       rids.insert(make_pair(key, rid));
-    //     else
-    //       break;
-    //   }
-    //   break;
-    // case SelCond::LE:
-    //   rc = bti.locate(INT_MIN, cursor);
-    //   while (true) {
-    //     RecordId rid;
-    //     rc = bti.readForward(cursor, key, rid);
-    //     if (rc == 0 && key <= val)
-    //       rids.insert(make_pair(key, rid));
-    //     else
-    //       break;
-    //   }
-    //   break;
-    // case SelCond::GE:
-    //   rc = bti.locate(val, cursor);
-    //   while (true) {
-    //     RecordId rid;
-    //     rc = bti.readForward(cursor, key, rid);
-    //     if (rc == 0 && key >= val)
-    //       rids.insert(make_pair(key, rid));
-    //     else
-    //       break;
-    //   }
-    //   break;
-    // }
-
-    // for (int i = 0; i < cond.size(); i++) {
-    //   if (i != firstKeyCondition && cond[i].attr == 1) {
-    //     map<int, RecordId> new_rids;
-    //     map<int, RecordId>::iterator it;
-    //     val = atoi(cond[firstKeyCondition].value);
-    //     switch (cond[i].comp) {
-    //     case SelCond::EQ:
-    //       it = rids.find(val);
-    //       if (it != rids.end())
-    //         new_rids.insert(*it);
-    //       rids = new_rids;
-    //       break;
-    //     case SelCond::NE:
-    //       // shouldn't be reached
-    //       break;
-    //     case SelCond::GT:
-    //       it = rids.find(val);
-    //       if (it != rids.end())
-    //         new_rids.insert(*it);
-    //       rids = new_rids;
-    //       break;
-    //     case SelCond::LT:
-    //       it = rids.find(val);
-    //       if (it != rids.end())
-    //         new_rids.insert(*it);
-    //       rids = new_rids;
-    //       break;
-    //     case SelCond::GE:
-    //       break;
-    //     case SelCond::LE:
-    //       break;
-    //     }
-    //   }
-    // }
     bti.close();
   }
   else {
@@ -425,14 +325,13 @@ RC SqlEngine::load(const string& table, const string& loadfile, bool index)
     if (!ifs.is_open())
         return RC_FILE_OPEN_FAILED;
 
-    while (ifs.good())
+    string line;
+    while (getline(ifs, line))
     {
-        string line;
         int key;
         string value;
         RecordId rid;
 
-        getline(ifs, line);
         rc = parseLoadLine(line, key, value);
         if (rc)
             return rc;
