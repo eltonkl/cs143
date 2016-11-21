@@ -69,7 +69,7 @@ RC SqlEngine::select(int attr, const string& table, const vector<SelCond>& cond)
   }
 
   if (hasIndex && keyConditions > 0 && !keyInequality) {
-    vector<RecordId> rids;
+    vector<pair<int, RecordId> > rids;
     IndexCursor cursor;
 
     bool ge = true;
@@ -81,7 +81,7 @@ RC SqlEngine::select(int attr, const string& table, const vector<SelCond>& cond)
     for (unsigned i = 0; i < cond.size(); i++) {
       if (cond[i].attr == 1) {
         int val = atoi(cond[i].value);
-        fprintf(stderr, "old %d %d", min, max);
+        //fprintf(stderr, "old %d %d", min, max);
         switch (cond[i].comp) {
         case SelCond::EQ:
           if (ge && val < min || !ge && val <= min || le && val > max || !le & val >= max)
@@ -129,13 +129,13 @@ RC SqlEngine::select(int attr, const string& table, const vector<SelCond>& cond)
           }
           break;
         }
-        fprintf(stderr, " new %d %d\n", min, max);
+        //fprintf(stderr, " new %d %d\n", min, max);
       }
     }
 
-    fprintf(stderr, "final %d %d\n", min, max);
+    //fprintf(stderr, "final %d %d\n", min, max);
     rc = bti.locate(min, cursor);
-    fprintf(stderr, "first rc: %d\n", rc);
+    //fprintf(stderr, "first rc: %d\n", rc);
     while (true) {
       RecordId rid;
       rc = bti.readForward(cursor, key, rid);
@@ -148,26 +148,38 @@ RC SqlEngine::select(int attr, const string& table, const vector<SelCond>& cond)
           break;
         else if (!le && key >= max)
           break;
-        rids.push_back(rid);
+        rids.push_back(make_pair(key, rid));
       }
       else
         break;
     }
 
     count = 0;
-    fprintf(stderr, "size of rids: %u\n", rids.size());
+    //fprintf(stderr, "size of rids: %u\n", rids.size());
     {
-      vector<RecordId>::iterator it = rids.begin();
+      vector<pair<int, RecordId> >::iterator it = rids.begin();
       while (it != rids.end()) {
-        // read the tuple
-        if ((rc = rf.read(*it, key, value)) < 0) {
-          fprintf(stderr, "Error: while reading a tuple from table %s\n", table.c_str());
-          goto exit_select;
+        bool read = false;
+        if (attr == 2 || attr == 3) {
+          // can't just operate on keys only, so read the tuple
+          if ((rc = rf.read(it->second, key, value)) < 0) {
+            fprintf(stderr, "Error: while reading a tuple from table %s\n", table.c_str());
+            goto exit_select;
+          }
+          read = true;
         }
 
         // check the non-key conditions on the tuple
         for (unsigned i = 0; i < cond.size(); i++) {
           if (cond[i].attr == 2) {
+            if (!read) {
+              // if we haven't yet read the value and need to compare it, read the tuple
+              if ((rc = rf.read(it->second, key, value)) < 0) {
+                fprintf(stderr, "Error: while reading a tuple from table %s\n", table.c_str());
+                goto exit_select;
+              }
+              read = true;
+            }
             // compute the difference between the tuple value and the condition value
             diff = strcmp(value.c_str(), cond[i].value);
 
