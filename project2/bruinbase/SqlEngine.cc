@@ -100,32 +100,40 @@ RC SqlEngine::select(int attr, const string& table, const vector<SelCond>& cond)
           if (ge && val < min || !ge && val <= min)
             goto no_values;
           else {
-            le = false;
-            max = val;
+            if (le && val <= max || !le && val < max) {
+              le = false;
+              max = val;
+            }
           }
           break;
         case SelCond::GT:
           if (le && val > max || !le && val >= max)
             goto no_values;
           else {
-            ge = false;
-            min = val;
+            if (ge && val >= min || !ge && val > min) {
+              ge = false;
+              min = val;
+            }
           }
           break;
         case SelCond::LE:
           if (val < min)
             goto no_values;
           else {
-            le = true;
-            max = val;
+            if (val < max) {
+              le = true;
+              max = val;
+            }
           }
           break;
         case SelCond::GE:
           if (val > max)
             goto no_values;
           else {
-            ge = true;
-            min = val;
+            if (val > min) {
+              ge = true;
+              min = val;
+            }
           }
           break;
         }
