@@ -160,6 +160,7 @@ RC SqlEngine::select(int attr, const string& table, const vector<SelCond>& cond)
       vector<pair<int, RecordId> >::iterator it = rids.begin();
       while (it != rids.end()) {
         bool read = false;
+        key = it->first;
         if (attr == 2 || attr == 3) {
           // can't just operate on keys only, so read the tuple
           if ((rc = rf.read(it->second, key, value)) < 0) {
