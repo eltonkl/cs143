@@ -104,6 +104,7 @@ RC BTreeIndex::insert(int key, const RecordId& rid)
     // base case: empty
     if (rootPid == -1) {
         BTLeafNode btln1, btln2;
+        // set the right node because of the way B+ tree works
         rc = btln2.insert(key, rid);
         if (rc)
             return rc;
@@ -135,7 +136,7 @@ RC BTreeIndex::insert(int key, const RecordId& rid)
         // update member variables
         rootPid = pf.endPid() - 1;
         treeHeight = 1;
-
+        
         return 0;
     }
 
@@ -178,6 +179,10 @@ RC BTreeIndex::insert(int key, const RecordId& rid)
  */
 RC BTreeIndex::locate(int searchKey, IndexCursor& cursor)
 {
+    if (rootPid == -1) {
+        return RC_NO_SUCH_RECORD;
+    }
+
     return traverseAndLocate(searchKey, cursor, rootPid, 0);
 }
 
@@ -334,6 +339,15 @@ RC BTreeIndex::traverseAndLocate(int searchKey, IndexCursor& cursor, PageId pid,
 
         int eid;
         rc = btln.locate(searchKey, eid);
+
+        if (rc == RC_NO_SUCH_RECORD && btln.getKeyCount() == 0) {
+            // this leaf node is empty (in extreme edge case)
+            cursor.pid = btln.getNextNodePtr();
+            cursor.eid = 0;
+            if (cursor.pid == -1)
+                return RC_END_OF_TREE;
+            return RC_NO_SUCH_RECORD;
+        }
 
         cursor.pid = pid;
         cursor.eid = eid;

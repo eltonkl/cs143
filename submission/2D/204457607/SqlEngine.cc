@@ -59,6 +59,7 @@ RC SqlEngine::select(int attr, const string& table, const vector<SelCond>& cond)
   bool hasIndex = rc == 0;
   int keyConditions = 0;
   bool keyInequality = false;
+  int valueConditions = 0;
 
   for (int i = 0; i < cond.size(); i++) {
     if (cond[i].attr == 1) {
@@ -66,9 +67,11 @@ RC SqlEngine::select(int attr, const string& table, const vector<SelCond>& cond)
       if (cond[i].comp == SelCond::NE)
         keyInequality = true;
     }
+    else if (cond[i].attr == 2)
+      valueConditions++;
   }
 
-  if (hasIndex && keyConditions > 0 && !keyInequality) {
+  if (hasIndex && !keyInequality && (keyConditions > 0 || attr == 4 && keyConditions == 0 && valueConditions == 0)) {
     vector<pair<int, RecordId> > rids;
     IndexCursor cursor;
 
@@ -100,32 +103,40 @@ RC SqlEngine::select(int attr, const string& table, const vector<SelCond>& cond)
           if (ge && val < min || !ge && val <= min)
             goto no_values;
           else {
-            le = false;
-            max = val;
+            if (le && val <= max || !le && val < max) {
+              le = false;
+              max = val;
+            }
           }
           break;
         case SelCond::GT:
           if (le && val > max || !le && val >= max)
             goto no_values;
           else {
-            ge = false;
-            min = val;
+            if (ge && val >= min || !ge && val > min) {
+              ge = false;
+              min = val;
+            }
           }
           break;
         case SelCond::LE:
           if (val < min)
             goto no_values;
           else {
-            le = true;
-            max = val;
+            if (val < max) {
+              le = true;
+              max = val;
+            }
           }
           break;
         case SelCond::GE:
           if (val > max)
             goto no_values;
           else {
-            ge = true;
-            min = val;
+            if (val > min) {
+              ge = true;
+              min = val;
+            }
           }
           break;
         }
@@ -135,10 +146,12 @@ RC SqlEngine::select(int attr, const string& table, const vector<SelCond>& cond)
 
     //fprintf(stderr, "final %d %d\n", min, max);
     rc = bti.locate(min, cursor);
-    //fprintf(stderr, "first rc: %d\n", rc);
+    //fprintf(stderr, "first rc: %d and pid: %d, eid: %d\n", rc, cursor.pid, cursor.eid);
+
     while (true) {
       RecordId rid;
       rc = bti.readForward(cursor, key, rid);
+      //fprintf(stderr, "loop rc: %d\n", rc);
       if (rc == 0) {
         if (ge && key < min)
           continue;
@@ -149,6 +162,7 @@ RC SqlEngine::select(int attr, const string& table, const vector<SelCond>& cond)
         else if (!le && key >= max)
           break;
         rids.push_back(make_pair(key, rid));
+        //fprintf(stderr, "key %d\n", key);
       }
       else
         break;
@@ -176,7 +190,7 @@ RC SqlEngine::select(int attr, const string& table, const vector<SelCond>& cond)
             if (!read) {
               // if we haven't yet read the value and need to compare it, read the tuple
               if ((rc = rf.read(it->second, key, value)) < 0) {
-                fprintf(stderr, "Error: while reading a tuple from table %s\n", table.c_str());
+                //fprintf(stderr, "Error: while reading a tuple from table %s\n", table.c_str());
                 goto exit_select;
               }
               read = true;
