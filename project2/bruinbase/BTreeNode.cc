@@ -201,6 +201,15 @@ RC BTLeafNode::locate(int searchKey, int& eid)
         return RC_NO_SUCH_RECORD;
     }
 
+    int key;
+    RecordId rid;
+    readEntry(0, key, rid);
+
+    if (searchKey < key) {
+        eid = 0;
+        return RC_NO_SUCH_RECORD;
+    }
+
     // binary search
     int leftIndex = 0,
         rightIndex = currentKeyCount - 1,
