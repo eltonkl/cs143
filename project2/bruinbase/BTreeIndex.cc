@@ -105,7 +105,10 @@ RC BTreeIndex::insert(int key, const RecordId& rid)
     if (rootPid == -1) {
         BTLeafNode btln1, btln2;
         // set the right node because of the way B+ tree works
-        rc = btln2.insert(key, rid);
+        // rc = btln2.insert(key, rid);
+
+        // insert into left node instead
+        rc = btln1.insert(key, rid);
         if (rc)
             return rc;
 
@@ -126,7 +129,8 @@ RC BTreeIndex::insert(int key, const RecordId& rid)
 
         // initialize root
         BTNonLeafNode btnln;
-        rc = btnln.initializeRoot(pid1, key, pid2);
+        // key + 1 because we insert into left node
+        rc = btnln.initializeRoot(pid1, key + 1, pid2);
         if (rc)
             return rc;
         rc = btnln.write(pf.endPid(), pf);
