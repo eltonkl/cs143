@@ -103,44 +103,22 @@ RC BTreeIndex::insert(int key, const RecordId& rid)
 
     // base case: empty
     if (rootPid == -1) {
-        BTLeafNode btln1, btln2;
-        // set the right node because of the way B+ tree works
-        // rc = btln2.insert(key, rid);
+        // just insert into leaf node
+        BTLeafNode btln;
 
-        // insert into left node instead
-        rc = btln1.insert(key, rid);
+        rc = btln.insert(key, rid);
         if (rc)
             return rc;
-
-        // PageId to store btln1 and btln2
-        PageId pid1 = pf.endPid(),
-                pid2 = pid1 + 1;
         
-        // set nextNodePtr
-        btln1.setNextNodePtr(pid2);
+        btln.setNextNodePtr(-1);
 
-        // write btln1 and btln2
-        rc = btln1.write(pid1, pf);
-        if (rc)
-            return rc;
-        rc = btln2.write(pid2, pf);
+        PageId pid = pf.endPid();
+        rc = btln.write(pid, pf);
         if (rc)
             return rc;
 
-        // initialize root
-        BTNonLeafNode btnln;
-        // key + 1 because we insert into left node
-        rc = btnln.initializeRoot(pid1, key + 1, pid2);
-        if (rc)
-            return rc;
-        rc = btnln.write(pf.endPid(), pf);
-        if (rc)
-            return rc;
-
-        // update member variables
-        rootPid = pf.endPid() - 1;
-        treeHeight = 1;
-        
+        rootPid = pid;
+        treeHeight = 0;
         return 0;
     }
 
@@ -149,7 +127,8 @@ RC BTreeIndex::insert(int key, const RecordId& rid)
     PageId ofPid;
     rc = traverseAndInsert(key, rid, rootPid, 0, ofKey, ofPid);
 
-    if (rc == RC_STATUS_INSERT_NEW_ROOT) {
+    // second OR part is for when we first insert non-leaf node
+    if (rc == RC_STATUS_INSERT_NEW_ROOT || rc == RC_STATUS_INSERT_LEAF_OF) {
         // new root
         BTNonLeafNode newRoot;
         rc = newRoot.initializeRoot(rootPid, ofKey, ofPid);
