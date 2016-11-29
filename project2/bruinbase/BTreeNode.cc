@@ -131,7 +131,7 @@ RC BTLeafNode::insertAndSplit(int key, const RecordId& rid,
     // TODO: behavior is undefined with few entries (like < 3)
 
     // first LeafEntry to move
-    int splitIndex = (currentKeyCount + 1) / 2;
+    int splitIndex = (currentKeyCount + 2) / 2;
     for (int i = splitIndex; i < currentKeyCount; i++) {
         // move second half of LeafEntry to sibling
         int curKey;
